@@ -5,23 +5,131 @@ date: "14 February 2021"
 output: pdf_document
 fontsize: 11pt
 highlight: tango
+header-includes:
+   - \usepackage{bbm}
 ---
 
+`r options(digits=3)`
+
 ## Exercise 1 
+<!--
+The data set birthweight.txt contains the birthweights of 188 newborn babies. 
+We are interested in finding the underlying (population) mean μ of birthweights.
+-->
+
 **a)** 
+<!--
+Check normality of the data. 
+Compute a point estimate for μ. 
+Derive, assuming normality (irrespective of your conclusion about normality od the data), 
+    a bounded 90% confidence interval for μ. 
+-->
+We check the normality of the data using QQ-plot. 
+
+```{r, fig.height=3, fig.width=6, fig.align='center'}
+birth_weight <- scan("birthweight.txt", skip=1)
+qqnorm(birth_weight)
+```
+
+The points in the QQ-plot are approximately on a straight line, so we assume that the data are sampled from the normal distribution.
+Because we don't know both the $\mu$ and $\delta$, we derive the 90% confidence interval for $\mu$ using $t$-confidence interval.
+
+```{r}
+res <- t.test(birth_weight, conf.level=0.9)
+```
+
+We compute $\bar{x}$ = `r res$estimate` as a point estimate for $\mu$ and its 90% confidence interval is [`r res$conf.int`]. 
 
 **b)** 
+<!--
+An expert claims that the mean birthweight is bigger than 2800, verify this claim by using a t-test.
+What is the outcome of the test if you take α = 0.1? 
+And other values of α?
+-->
+According to what expert claims, we set up null hypothesis $H_0$: $\mu \leq 2800$. 
+
+```{r}
+res <- t.test(birth_weight, alternative=c("greater"), mu=2800, conf.level=0.9)
+```
+
+For $\alpha = 0.1$, CI = [`r res$conf.int`], $p$ = `r res$p.value`. 
+Since $p$ < $\alpha$, we reject $H_0$ and support the claim. 
+For other $\alpha$, only when $\alpha$ < $p$, i.e. `r res$p.value`, the claim will be rejected. 
 
 **c)** 
+<!--
+In the R-output of the test from b), also a confidence interval is given, 
+but why is it different from the confidence interval found in a) and why is it one-sided?
+-->
+For a), the confidence interval is constructed for the point estimation of $\mu$, but for b) the confidence interval is constructed for the one-sided hypothesis test on the claim. 
+And also for the same reason the one-sided hypothesis resulted in the one-sided confidence interval. 
 
 ## Exercise 2 
+<!--
+We study the power function of the two-sample t-test (see Section 1.9 of Assignment 0). 
+For n=m=30, mu=180, nu=175 and sd=5, generate 1000 samples x=rnorm(n, mu, sd) and y=rnorm(m, nu, sd), 
+    and record the 1000 p-values for testing H0: mu=nu. 
+You can evaluate the power (at point nu=175) of this t-test as fraction of p-values that are smaller than 0.05.
+-->
+
 **a)** 
+<!--
+Set n=m=30, mu=180 and sd=5. 
+Calculate now the power of the t-test for every value of nu in the grid seq(175, 185, by=0.25). 
+Plot the power as a function of nu.
+-->
+```{r fig.height=3, fig.width=6, fig.align='center'}
+plot_nu_power <- function(m, n, mu, nus, sd, B, col, add) {
+    p_values <- numeric(B); power <- numeric(length(nus))
+    for (i in 1:length(nus)) {
+        for (b in 1:B) {
+            x <- rnorm(m, mu, sd)
+            y <- rnorm(n, nus[i], sd)
+            p_values[b] <- t.test(x, y, var.equal=TRUE)$p.value
+        }
+        power[i] <- mean(p_values < 0.05)
+    }
+    if (add) {
+        par(new=TRUE)
+        plot(nus, power, type="p", col=col, axes=FALSE, ylab='', ylim=c(0, 1))
+    } else {
+        plot(nus, power, type="p", col=col, ylim=c(0, 1))
+    }
+}
+
+plot_nu_power(30, 30, 180, seq(175, 185, by=0.25), 5, 1000, "red", FALSE)
+```
 
 **b)** 
+<!--
+Set n=m=100, mu=180 and sd=5. 
+Repeat the preceding exercise. 
+Add the plot to the preceding plot.
+-->
+```{r fig.height=3, fig.width=6, fig.align='center'}
+plot_nu_power(30, 30, 180, seq(175, 185, by=0.25), 5, 1000, "red", FALSE)
+plot_nu_power(100, 100, 180, seq(175, 185, by=0.25), 5, 1000, "blue", TRUE)
+```
 
 **c)** 
+<!--
+Set n=m=30, mu=180 and sd=15. 
+Repeat the preceding exercise.
+-->
+```{r fig.height=3, fig.width=6, fig.align='center'}
+plot_nu_power(30, 30, 180, seq(175, 185, by=0.25), 5, 1000, "red", FALSE)
+plot_nu_power(100, 100, 180, seq(175, 185, by=0.25), 5, 1000, "blue", TRUE)
+plot_nu_power(30, 30, 180, seq(175, 185, by=0.25), 15, 1000, "green", TRUE)
+```
+
 
 **d)** 
+<!--
+Explain your findings.
+-->
+The power of $t$-test gets smaller when nu gets closer to 180, this is because mu = 180 and thus it is less possible to reject the null hypothesis. 
+If we let the size of samples bigger, then nu has to be closer to mu to get a lower probability of rejection, which is more accurate. 
+If we enlarge the standard deviation, which indicates that the samples can spread far from the nu and mu, and thus let the test be more difficult to reject to null hypothesis, so the power gets lower.
 
 ## Exercise 3 
 **a)** 
