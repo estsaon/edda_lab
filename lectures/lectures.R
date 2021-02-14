@@ -5,9 +5,9 @@
 clouds <- read.table(file="clouds.txt", header=TRUE)
 T_val <- mean(clouds$seeded)
 
-n_sim <- 1000
-T_vals <- numeric(n_sim)
-for (i in 1:n_sim) {
+B <- 1000
+T_vals <- numeric(B)
+for (i in 1:B) {
     # generate data sample X*_i, ..., X*_N by sampling N values from the original dataset X_i, ..., X_N with replacement
     sampled_seeded <- sample(clouds$seeded, replace=TRUE)
     # compute the test statistic T*_i = T(X*_i, ..., X*_N) for the sample
@@ -33,10 +33,10 @@ lines(x, dexp(x), type="l", col="blue", lwd=2)
 
 T_val <- max(data)
 N <- length(data)
-n_sim <- 1000
-T_vals = numeric(n_sim)
+B <- 1000
+T_vals = numeric(B)
 
-for (i in 1:n_sim) {
+for (i in 1:B) {
     # generate data sample according to H_0
     sampled_data <- rexp(N, 1)
     # compute the test statistic T*_i = T(X*_i, ..., X*_N) for the sample
@@ -53,8 +53,8 @@ u <- seq(0, max(T_vals), length=1000)
 lines(u, dens_max_exp(u, N), type="l", col="blue")
 
 # compare the T-value of the original data to the T*-values and determine a p-value
-p_val_left <- sum(T_vals < T_val) / n_sim
-p_val_right <- sum(T_vals > T_val) / n_sim
+p_val_left <- sum(T_vals < T_val) / B
+p_val_right <- sum(T_vals > T_val) / B
 p_val <- 2 * min(p_val_left, p_val_right)
 
 # --------------------------------------------------- # 
@@ -132,21 +132,26 @@ boxplot(ashina$vas.active, ashina$vas.plac, names=c("active","placebo"))
 plot(ashina$vas.active, ashina$vas.plac); abline(0, 1)
 
 T_val <- mean(ashina$vas.active - ashina$vas.plac)
-n_sim <- 1000
-T_vals <- numeric(n_sim)
-for (i in 1:n_sim) {
+B <- 1000
+T_vals <- numeric(B)
+for (i in 1:B) {
     permutated_ashina <- t(apply(cbind(ashina$vas.active, ashina$vas.plac), 1, sample))
     T_vals[i] <- mean(permutated_ashina[, 1] - permutated_ashina[, 2])
 }
 
 hist(T_vals)
-p_val_left <- sum(T_vals < T_val) / n_sim
-p_val_right <- sum(T_vals > T_val) / n_sim
+p_val_left <- sum(T_vals < T_val) / B
+p_val_right <- sum(T_vals > T_val) / B
 p_val <- 2 * min(p_val_left, p_val_right)
 
 # --------------------------------------------------- # 
 # two independent samples, two samples t-test
+# H_0: means of the populations are the same
 # --------------------------------------------------- # 
+light1 <- scan("light1.txt")
+light2 <- scan("light2.txt")
+par(mfrow=c(1, 3))
+hist(light1); hist(light2); boxplot(light1, light2)
 
 # --------------------------------------------------- # 
 # two independent samples, Mann-Whitney test
