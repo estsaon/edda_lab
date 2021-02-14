@@ -1,0 +1,53 @@
+---
+title: "Assignment 1"
+author: "Peter Pan, Yuxiang Wang, Yancheng Zhuang"
+date: "14 February 2021"
+output: pdf_document
+fontsize: 11pt
+highlight: tango
+---
+
+## Exercise 1 
+**a)** 
+
+**b)** 
+
+**c)** 
+
+## Exercise 2 
+**a)** 
+
+**b)** 
+
+**c)** 
+
+**d)** 
+
+## Exercise 3 
+**a)** 
+
+**b)** 
+
+**c)** 
+
+**d)** 
+
+**e)** 
+
+## Exercise 4
+**a)** 
+
+**b)** 
+
+**c)** 
+
+**d)** 
+
+## Exercise 5
+**a)** 
+
+**b)** 
+
+**c)** 
+
+**d)** 
