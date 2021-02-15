@@ -87,11 +87,54 @@ Are there any inconsistencies in the data?
 If so, try to fix these.
 -->
 
+We use histogram and QQ-plot to visualize the distribution of the data. 
+
+```{r, fig.height=3, fig.width=6, fig.align='center'}
+bills <- scan("telephone.txt", skip=2)
+par(mfrow=c(1, 2))
+hist(bills, prob=T)
+qqnorm(bills)
+```
+
+From the plots we can see that the data don't follow the normal distribution. 
+And we can roughly divide the data into three intervals. 
+Firstly, the [0, 30] interval contains a large number of subscribers with low bill. 
+Secondly, the [30, 70] interval contains the fewest users. 
+Lastly, the [30, 120] interval contains a relatively big group of users. 
+Based on the distribution, we advise that the company might consider on two types of pricing policies fow low-bill and high-bill users.
+We don't find any inconsisteny in the data. 
+The only bill worthing noticing is the bill with 0, but we think it is plausible that someone just didn't call or text that month.
+
 **b)** 
 <!--
 By using a bootstrap test with the test statistic T = median(X_1, ..., X_200), 
 test whether the data telephone.txt stems from the exponential distribution Exp(λ) with some λ from [0.01, 0.1].
 -->
+
+We let $\lambda$ to iterate from 0.01 to 0.1 by 0.001 to determine whether the data stem from the exponential distribution Exp($\lambda$) with some $\lambda$ from [0.01, 0.1]. Each of the simluations repeats 1000 times.
+
+```{r}
+T_val <- median(bills)
+N <- length(bills)
+B <- 1000
+T_vals <- numeric(B)
+lambdas <- seq(0.01, 0.1, by=0.001)
+p_vals <- numeric(length(lambdas))
+
+for (i in 1:length(lambdas)) {
+    for (j in 1:B) {
+        sampled_bills <- rexp(N, lambdas[i])
+        T_vals[j] <- median(sampled_bills)
+    }
+
+    p_val_left <- sum(T_vals < T_val) / B
+    p_val_right <- sum(T_vals > T_val) / B
+    p_vals[i] <- 2 * min(p_val_left, p_val_right)
+}
+plot(lambdas, p_vals, type='l')
+```
+
+According to the plot, we can see that when $\lambda$ gets closer to `r lambdas[which.max(p_vals)]`, the $p$ can even reach more than 0.9. So the data must stem from the exponential distribution Exp($\lambda$) with some $\lambda$ from [0.01, 0.1].
 
 **c)** 
 <!--
