@@ -117,7 +117,7 @@ Next, design and perform a test to check whether the fraction of the bills less 
 To study the effect of energy drink a sample of 24 high school pupils were randomized to drinking 
 either a softdrink or an energy drink after running for 60 meters. 
 After half an hour they were asked to run again. 
-For both sprints they were asked to sprint as fast they could,  and the sprinting time was measured. 
+For both sprints they were asked to sprint as fast they could, and the sprinting time was measured. 
 The data is given in the file run.txt. 
 [Courtesy class 5E, Stedelijk Gymnasium Leiden, 2010.]
 -->
@@ -127,17 +127,86 @@ The data is given in the file run.txt.
 Disregarding the type of drink, test whether the run times before drink and after are correlated. 
 -->
 
+First we check the normality of the run times using QQ-plot. 
+
+```{r fig.height=3, fig.width=6, fig.align='center'}
+run <- read.table("run.txt", header=TRUE)
+par(mfrow=c(1, 2))
+qqnorm(run$before); qqnorm(run$after)
+```
+
+According to the QQ-plot, we think the data can be assumed normality. 
+So we use Pearson's correlation test to test correlation. 
+We set up $H_0$ as there is no correlation between the run times before drink and after. 
+
+```{r}
+p_val <- cor.test(run$before, run$after)$p.value
+```
+
+The results show that $p$ = `r p_val`, so we reject the null hypothesis. 
+Therfore, the run times before drink and after are correlated.
+
 **b)** 
 <!--
 Test separately, for both the softdrink and the energy drink conditions, 
 whether there is a difference in speed in the two running tasks.
 -->
 
+We first check the nomality of the differences in speed using QQ-plot. 
+
+```{r fig.height=3, fig.width=6, fig.align='center'}
+par(mfrow=c(1, 2))
+run_energy <- subset(run, drink=="energy")
+run_lemo <- subset(run, drink=="lemo")
+qqnorm(run_energy$before - run_energy$after)
+qqnorm(run_lemo$before - run_lemo$after)
+```
+
+According to the plot, we cannot assume the normality.
+So we use permutation test here with mean as test statistic.
+We set up $H_0$ as there is no difference in speeds in the two running tasks. 
+
+```{r}
+perm.test <- function(x, y, T, B) {
+   T_val <- T(x - y)
+   T_vals <- numeric(B)
+
+   for (i in 1:B) {
+      perm_data <- t(apply(cbind(x, y), 1, sample))
+      T_vals[i] <- T(perm_data[, 1] - perm_data[, 2])
+   }
+
+   p_val_left <- sum(T_vals < T_val) / B
+   p_val_right <- sum(T_vals > T_val) / B
+   p_val <- 2 * min(p_val_left, p_val_right)
+   return (p_val)
+}
+p_val_energy <- perm.test(run_energy$before, run_energy$after, mean, 1000)
+p_val_lemo <- perm.test(run_energy$before, run_energy$after, mean, 1000)
+```
+
+We get $p_{energy}$ = `r p_val_energy` and  $p_{lemo}$ = `r p_val_lemo`. 
+So for both of the drink we don't reject null hypothesis. 
+Therefore, there is no difference in speed in the two running tasks.
+
 **c)** 
 <!--
 For each pupil compute the time difference between the two running tasks. 
 Test whether these time differences are effected by the type of drink.
 -->
+
+As is discovered in b), we cannot assume the normality of the population. 
+So we use Mann-Whitney test here. 
+We set up $H_0$ as there is no difference between the time differences of these two types of drink. 
+
+```{r}
+p_val <- wilcox.test(run_energy$before - run_energy$after, run_lemo$before - run_lemo$after)
+```
+
+We get $p$ = `r p_val``. 
+So we don't reject null hypothesis. 
+Therefore, there is no difference between these two populations. 
+
 
 **d)** 
 <!--
@@ -146,6 +215,13 @@ if the main aim was to test whether drinking the energy drink speeds up the runn
 Is there a similar objection to the design of the experiment in c)? 
 Comment on all your findings in this exercise.
 -->
+
+If the main aim is to test whether drinking the energy drink speeds up the running, 
+then we needs to get higher sensitivity and power. 
+For tests, the power is positively associated with sample size.
+For both b) and c), the sample size is too small. 
+
+Under current design of the experiment, we find that the drinks don't have much effect. 
 
 ## Exercise 5
 <!--
