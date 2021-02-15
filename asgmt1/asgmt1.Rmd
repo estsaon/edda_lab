@@ -149,7 +149,7 @@ Confidence interval should be $[2T - T^{*}_{(1-\alpha)}, 2T - T^{*}_{(\alpha)}]$
 We repeat the simulation for 1000 times.
 
 ```{r}
-bootstrap_ci <- function(data, B, T, confidence) {
+bootstrap.ci <- function(data, B, T, confidence) {
     T_val <- T(data)
     T_vals <- numeric(B)
 
@@ -163,7 +163,7 @@ bootstrap_ci <- function(data, B, T, confidence) {
             2 * T_val - quantile(T_vals, alpha))
     return (ci)
 }
-ci <- bootstrap_ci(bills, 1000, median, 0.95)
+ci <- bootstrap.ci(bills, 1000, median, 0.95)
 ```
 
 So the 95% bootstrap confidence interval for the population median of the sample is [`r ci`].
@@ -195,7 +195,7 @@ We compute that $\lambda$ = `r lambda`.
 So using the $\lambda$ we computed, we construct again a 95% confidence interval for the population median.
 
 ```{r}
-ci <- bootstrap_ci(rexp(length(bills), lambda), 1000, median, 0.95)
+ci <- bootstrap.ci(rexp(length(bills), lambda), 1000, median, 0.95)
 ```
 
 We get [`r ci`] this time.
