@@ -11,7 +11,7 @@ header-includes:
 
 `r options(digits=3)`
 
-## Exercise 1
+## Exercise 1 
 <!--
 The data set birthweight.txt contains the birthweights of 188 newborn babies. 
 We are interested in finding the underlying (population) mean μ of birthweights.
@@ -21,9 +21,23 @@ We are interested in finding the underlying (population) mean μ of birthweights
 <!--
 Check normality of the data. 
 Compute a point estimate for μ. 
-Derive, assuming normality (irrespective of your conclusion about normality od the data), 
-a bounded 90% confidence interval for μ. 
+Derive, assuming normality (irrespective of your conclusion about normality od the data), a bounded 90% confidence interval for μ. 
 -->
+We check the normality of the data using QQ-plot. 
+
+```{r, fig.height=3, fig.width=6, fig.align='center'}
+birth_weight <- scan("birthweight.txt", skip=1)
+qqnorm(birth_weight)
+```
+
+The points in the QQ-plot are approximately on a straight line, so we assume that the data are sampled from the normal distribution.
+Because we don't know both the $\mu$ and $\delta$, we derive the 90% confidence interval for $\mu$ using $t$-confidence interval.
+
+```{r}
+res <- t.test(birth_weight, conf.level=0.9)
+```
+
+We compute $\bar{x}$ = `r res$estimate` as a point estimate for $\mu$ and its 90% confidence interval is [`r res$conf.int`]. 
 
 **b)** 
 <!--
@@ -31,12 +45,24 @@ An expert claims that the mean birthweight is bigger than 2800, verify this clai
 What is the outcome of the test if you take α = 0.1? 
 And other values of α?
 -->
+According to what expert claims, we set up null hypothesis $H_0$: $\mu \leq 2800$. 
+
+```{r}
+res <- t.test(birth_weight, alternative=c("greater"), mu=2800, conf.level=0.9)
+```
+
+For $\alpha = 0.1$, CI = [`r res$conf.int`], $p$ = `r res$p.value`. 
+Since $p$ < $\alpha$, we reject $H_0$ and support the claim. 
+For other $\alpha$, only when $\alpha$ < $p$, i.e. `r res$p.value`, the claim will be rejected. 
 
 **c)** 
 <!--
 In the R-output of the test from b), also a confidence interval is given, 
 but why is it different from the confidence interval found in a) and why is it one-sided?
 -->
+For a), the confidence interval is constructed for the point estimation of $\mu$, 
+but for b) the confidence interval is constructed for the one-sided hypothesis test on the claim. 
+And also for the same reason the one-sided hypothesis resulted in the one-sided confidence interval. 
 
 ## Exercise 2
 <!--
