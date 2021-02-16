@@ -263,7 +263,7 @@ We set up $H_0$ as there is no difference between the time differences of these 
 p_val <- wilcox.test(run_energy$before - run_energy$after, run_lemo$before - run_lemo$after)
 ```
 
-We get $p$ = `r p_val``. 
+We get $p$ = `r p_val`. 
 So we don't reject null hypothesis. 
 Therefore, there is no difference between these two populations. 
 
