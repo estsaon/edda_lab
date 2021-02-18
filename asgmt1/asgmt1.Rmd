@@ -164,6 +164,12 @@ the two samples t-test (argue whether the data are paired or not), the
 Mann-Whitney test and the Kolmogorov-Smirnov test. 
 Comment on your findings.
 -->
+<!--
+R.Pan's solution
+ -->
+ 
+ We find an outlier in the sunflower group, since the 6th z-score in the group is lower than -2, the coincident weight is too small to count, thus we remove the outlier.
+
 ```{r}
     meatmeal <- subset(chickwts, feed == "meatmeal", select = c("weight"))
     sunflower <- subset(chickwts, feed == "sunflower", select = c("weight"))
@@ -173,7 +179,6 @@ Comment on your findings.
     meatmeal <- meatmeal$weight
 ```
 
-We can find an outlier in the sunflower group by z-score, since the 6th z-score in the group is lower than -2, the coincident weight is too small to count, thus we remove it.
 
 Paired T-test:
 ```{r}
@@ -182,6 +187,29 @@ Paired T-test:
 
 For $\alpha = 0.05$, $p$ = `r p_value`. 
 Since $p$ < $\alpha$, we reject $H_0$ and support the claim. 2 samples are not paired.
+
+<!--
+Yuxiang Wang's solution:
+
+```{r}
+data("chickwts")
+data1=subset(chickwts,feed=="meatmeal")
+data1
+data2=subset(chickwts,feed=="sunflower")
+data2
+```
+a
+the two samples t-test: (not paired)
+Because the lengths of the two types are different, the paired test cannot be used
+Null hypothesis: the distribution between meatmeal and sunflower is the same
+Alternative hypothesis: the distribution between meatmeal and sunflower is not the same
+
+```{r}
+t.test(data1$weight,data2$weight)
+```
+
+It can be seen that the p value of t-test is less than 0.05, so the null hypothesis can be rejected, that is, the distribution between meatmeal and sunflower is not the same.
+ -->
 
 Mann-Whitney test:
 ```{r}
@@ -199,7 +227,20 @@ Kolmogorov-Smirnov test:
 For $\alpha = 0.05$, $p$ = `r p_value`. 
 Since $p$ > $\alpha$, we failed to reject $H_0$.
 
+Conclusion:
+Parametric tests reject the null hypothesis, and non-parametric tests accept the null hypothesis.
+
 **b)** 
+<!--
+Conduct a one-way ANOVA to determine whether the type of feed supplement has an effect on the weight of the chicks. 
+Give the estimated chick weights for each of the six feed supplements. 
+What is the best feed supplement?
+-->
+<!-- 
+R.Pan's solution
+-->
+
+one-way ANOVA:
 ```{r}
     linear_mode <- lm(weight~feed, data <- chickwts)
     p_value <- anova(linear_mode)$p.value
@@ -209,20 +250,40 @@ For $\alpha = 0.05$, $p$ = `r p_value`.
 Since $p$ < $\alpha$, we reject $H_0$ and support the claim. Factor feed is significant.
 
 ```{r}
-    summary(linearMode)
+    summary(linear_mode)$coefficients
 ```
 
-Sunflower feed is the best feed supplement.
+Since feedsunflower has the highest t-value and p-value, we can conlude that sunflower feed is the best feed supplement.
 <!--
-Conduct a one-way ANOVA to determine whether the type of feed supplement has an effect on the weight of the chicks. 
-Give the estimated chick weights for each of the six feed supplements. 
-What is the best feed supplement?
--->
+Yuxiang Wang's solution:
+
+one-way ANOVA:
+
+```{r}
+library(gplots)
+plotmeans(weight~feed,data=chickwts)
+```
+
+According to the above results, the larger the mean, the better the effect, so sunflower has the best effect
+ -->
+
 
 **c)** 
 <!--
 Check the ANOVA model assumptions by using relevant diagnostic tools.
 -->
+
+Relevant diagnostic tools:
+Null hypothesis: The weights of these 6 feeds are significantly the same
+Alternative hypothesis: the weights of these 6 feeds are significantly different
+
+```{r}
+nlevels(chickwts$feed)
+fit=aov(weight~feed,data=chickwts)
+summary(fit)
+```
+
+It can be seen that the p value of one-way ANOVA is less than 0.05, so it is considered that the null hypothesis is rejected, that is, the weights of the 6 feeds are considered to be significantly different.
 
 **d)** 
 <!--
@@ -237,4 +298,5 @@ Explain possible differences between conclusions of the Kruskal-Wallis and ANOVA
 
 For $\alpha = 0.05$, $p$ = `r p_value`. 
 Since $p$ < $\alpha$, we reject $H_0$ and support the claim. At least 2 distributions are different.
-ANOVA test and kruskal test have the same result.
+ANOVA test and kruskal test have the same result, the main differences between them are:
+Kruskal-Wallis one-way analysis of variance is mainly used when comparing between multiple groups, because the groups do not meet the normal distribution and cannot be compared by ANOVA, the statistical similarity test method often used.
