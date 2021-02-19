@@ -215,37 +215,32 @@ Conduct a one-way ANOVA to determine whether the type of feed supplement has an 
 Give the estimated chick weights for each of the six feed supplements. 
 What is the best feed supplement?
 -->
-<!-- 
-R.Pan's solution
--->
 
-one-way ANOVA:
-```{r}
-    linear_mode <- lm(weight~feed, data <- chickwts)
-    p_value <- anova(linear_mode)$p.value
-```
-
-For $\alpha = 0.05$, $p$ = `r p_value`. 
-Since $p$ < $\alpha$, we reject $H_0$ and support the claim. Factor feed is significant.
+We set up `H_0` as all feed types has no factor effect. 
+Then we perfoem ANOVA as follows. 
 
 ```{r}
-    summary(linear_mode)$coefficients
+chickwts_lm <- lm(weight~feed, data=chickwts)
+p_val <- anova(chickwts_lm)$p.value
 ```
 
-Since feedsunflower has the highest t-value and p-value, we can conlude that sunflower feed is the best feed supplement.
-<!--
-Yuxiang Wang's solution:
-
-one-way ANOVA:
+For $\alpha = 0.05$, $p$ = `r p_val`. 
+Since $p$ < $\alpha$, we reject $H_0$ and support the claim. 
+At least one feed has significant impact.
 
 ```{r}
-library(gplots)
-plotmeans(weight~feed,data=chickwts)
+coef <- summary(chickwts_lm)$coefficients[, "Estimate"]
 ```
 
-According to the above results, the larger the mean, the better the effect, so sunflower has the best effect
- -->
+The estimation results are listed as follows: 
+casein: `r coef["(Intercept)"]`, 
+horsebean: `r coef["(Intercept)"] + coef["feedhorsebean"]`, 
+linseed: `r coef["(Intercept)"] +  coef["feedlinseed"]`, 
+meatmeal: `r coef["(Intercept)"] +  coef["feedmeatmeal"]`, 
+soybean: `r coef["(Intercept)"] +  coef["feedsoybean"]`, 
+sunflower: `r coef["(Intercept)"] +  coef["feedsunflower"]`. 
 
+So, sunflower is the best feed supplemnts. 
 
 **c)** 
 <!--
