@@ -247,17 +247,13 @@ So, sunflower is the best feed supplemnts.
 Check the ANOVA model assumptions by using relevant diagnostic tools.
 -->
 
-Relevant diagnostic tools:
-Null hypothesis: The weights of these 6 feeds are significantly the same
-Alternative hypothesis: the weights of these 6 feeds are significantly different
-
-```{r}
-nlevels(chickwts$feed)
-fit=aov(weight~feed,data=chickwts)
-summary(fit)
+```{r, fig.width = 6, fig.height = 3.5}
+par(mfrow=c(1, 1))
+qqnorm(residuals(chickwts_lm))
 ```
 
-It can be seen that the p value of one-way ANOVA is less than 0.05, so it is considered that the null hypothesis is rejected, that is, the weights of the 6 feeds are considered to be significantly different.
+Through checking normality of the residuals using QQ-plot, 
+we can confirm that the assumptions of noramlity of ANOVA satisfies. 
 
 **d)** 
 <!--
