@@ -160,75 +160,54 @@ The data frame consists of a numeric column giving the weights, and a factor col
 **a)** 
 <!--
 Test whether the distributions of the chicken weights for meatmeal and sunflower groups are different by performing three tests: 
-the two samples t-test (argue whether the data are paired or not), the
-Mann-Whitney test and the Kolmogorov-Smirnov test. 
+- the two samples t-test (argue whether the data are paired or not)
+- the Mann-Whitney test
+- the Kolmogorov-Smirnov test. 
 Comment on your findings.
 -->
-<!--
-R.Pan's solution
- -->
- 
- We find an outlier in the sunflower group, since the 6th z-score in the group is lower than -2, the coincident weight is too small to count, thus we remove the outlier.
+
+The data are not paired, because the experiment units are not the same, 
+which leads to the number of the samples in these two groups are different. 
+We set up `H_0` as the distribution between meatmeal and sunflower is the same.
+
+Firstly, we perform the not-paired two samples t-test. 
 
 ```{r}
-    meatmeal <- subset(chickwts, feed == "meatmeal", select = c("weight"))
-    sunflower <- subset(chickwts, feed == "sunflower", select = c("weight"))
-    m_zscores <- scale(meatmeal$weight)
-    s_zscores <- scale(sunflower$weight)
-    sunflower <- sunflower[sunflower != 226]
-    meatmeal <- meatmeal$weight
+meatmeal <- subset(chickwts, feed=="meatmeal")$weight
+sunflower <- subset(chickwts, feed=="sunflower")$weight
+p_val <- t.test(meatmeal, sunflower)$p.value
 ```
 
+The result indicates that `p` = `r p_val`. For $\alpha = 0.05$, we reject the null hypothesis, 
+that is, the distribution between meatmeal and sunflower is not the same.
 
-Paired T-test:
-```{r}
-    p_value <- t.test(meatmeal, sunflower, paired = TRUE)$p.value
-```
-
-For $\alpha = 0.05$, $p$ = `r p_value`. 
-Since $p$ < $\alpha$, we reject $H_0$ and support the claim. 2 samples are not paired.
-
-<!--
-Yuxiang Wang's solution:
+Secondly, we perform the Mann-Whitney test. 
 
 ```{r}
-data("chickwts")
-data1=subset(chickwts,feed=="meatmeal")
-data1
-data2=subset(chickwts,feed=="sunflower")
-data2
+p_val <- wilcox.test(meatmeal, sunflower)$p.value
 ```
-a
-the two samples t-test: (not paired)
-Because the lengths of the two types are different, the paired test cannot be used
-Null hypothesis: the distribution between meatmeal and sunflower is the same
-Alternative hypothesis: the distribution between meatmeal and sunflower is not the same
+
+$p$ = `r p_val`. 
+For $\alpha = 0.05$, we cannot reject `H_0`, the populations are the same.
+
+At last, we perform Kolmogorov-Smirnov test. 
 
 ```{r}
-t.test(data1$weight,data2$weight)
+p_val <- ks.test(meatmeal, sunflower)$p.value
 ```
 
-It can be seen that the p value of t-test is less than 0.05, so the null hypothesis can be rejected, that is, the distribution between meatmeal and sunflower is not the same.
- -->
+$p$ = `r p_val`. For $\alpha = 0.05$, we again cannot reject `H_0`.
 
-Mann-Whitney test:
-```{r}
-    p_value <- wilcox.test(meatmeal, sunflower)$p.value
+We find that only t-test rejects the null hypothesis. 
+After examining the assumption of the tests, we think the t-test cannot be used here. 
+We examine the normality using QQ-plots.
+
+```{r, fig.width = 6, fig.height = 3.5}
+par(mfrow=c(1, 2))
+qqnorm(meatmeal); qqnorm(sunflower)
 ```
 
-For $\alpha = 0.05$, $p$ = `r p_value`. 
-Since $p$ < $\alpha$, we reject $H_0$ and support the claim. The distribution of meatmeal is shifted right from the sunflower.
-
-Kolmogorov-Smirnov test:
-```{r}
-    p_value <- ks.test(meatmeal, sunflower)$p.value
-```
-
-For $\alpha = 0.05$, $p$ = `r p_value`. 
-Since $p$ > $\alpha$, we failed to reject $H_0$.
-
-Conclusion:
-Parametric tests reject the null hypothesis, and non-parametric tests accept the null hypothesis.
+According to the plots, we cannot assume the normality, especially for the distribution of sunflower. 
 
 **b)** 
 <!--
