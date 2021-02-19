@@ -1,11 +1,8 @@
 ---
 title: "Assignment 1"
 author: "Peter Pan, Yuxiang Wang, Yancheng Zhuang"
-date: "14 February 2021"
-output:
-  html_document:
-    df_print: paged
-  pdf_document: default
+date: "19 February 2021"
+output: html_document
 fontsize: 11pt
 highlight: tango
 header-includes: \usepackage{bbm}

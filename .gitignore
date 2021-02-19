@@ -2,3 +2,5 @@
 .Rhistory
 .pdf
 */*.pdf
+.html
+*/*.html
