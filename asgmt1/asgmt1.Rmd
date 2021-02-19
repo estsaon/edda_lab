@@ -1,12 +1,11 @@
 ---
 title: "Assignment 1"
 author: "Peter Pan, Yuxiang Wang, Yancheng Zhuang"
-date: "14 February 2021"
+date: "19 February 2021"
 output: pdf_document
 fontsize: 11pt
 highlight: tango
-header-includes:
-   - \usepackage{bbm}
+header-includes: \usepackage{bbm}
 ---
 
 `r options(digits=3)`
@@ -294,10 +293,54 @@ The data frame consists of a numeric column giving the weights, and a factor col
 **a)** 
 <!--
 Test whether the distributions of the chicken weights for meatmeal and sunflower groups are different by performing three tests: 
-the two samples t-test (argue whether the data are paired or not), the
-Mann-Whitney test and the Kolmogorov-Smirnov test. 
+- the two samples t-test (argue whether the data are paired or not)
+- the Mann-Whitney test
+- the Kolmogorov-Smirnov test. 
 Comment on your findings.
 -->
+
+The data are not paired, because the experiment units are not the same, 
+which leads to the number of the samples in these two groups are different. 
+We set up $H_0$` as the distribution between the weight after using meatmeal and sunflower is the same.
+
+Firstly, we perform the not-paired two samples t-test. 
+
+```{r}
+meatmeal <- subset(chickwts, feed=="meatmeal")$weight
+sunflower <- subset(chickwts, feed=="sunflower")$weight
+p_val <- t.test(meatmeal, sunflower)$p.value
+```
+
+The result indicates that `p` = `r p_val`. For $\alpha = 0.05$, we reject the null hypothesis, 
+that is, the distribution between the weight after using meatmeal and sunflower is not the same.
+
+Secondly, we perform the Mann-Whitney test. 
+
+```{r}
+p_val <- wilcox.test(meatmeal, sunflower)$p.value
+```
+
+$p$ = `r p_val`. 
+For $\alpha = 0.05$, we cannot reject $H_0$`, the populations are the same.
+
+At last, we perform Kolmogorov-Smirnov test. 
+
+```{r}
+p_val <- ks.test(meatmeal, sunflower)$p.value
+```
+
+$p$ = `r p_val`. For $\alpha = 0.05$, we again cannot reject $H_0$`.
+
+We find that only t-test rejects the null hypothesis. 
+After examining the assumption of the tests, we think the t-test cannot be used here. 
+We examine the normality using QQ-plots.
+
+```{r, fig.width = 6, fig.height = 3.5}
+par(mfrow=c(1, 2))
+qqnorm(meatmeal); qqnorm(sunflower)
+```
+
+According to the plots, we cannot assume the normality, especially for the distribution of sunflower. 
 
 **b)** 
 <!--
@@ -306,13 +349,57 @@ Give the estimated chick weights for each of the six feed supplements.
 What is the best feed supplement?
 -->
 
+We set up $H_0$` as all feed supplement types have same effects. 
+Then we perfoem ANOVA as follows. 
+
+```{r}
+chickwts_lm <- lm(weight~feed, data=chickwts)
+p_val <- anova(chickwts_lm)["feed", ]$p.value
+```
+
+For $\alpha = 0.05$, $p$ = `r p_val`. 
+Since $p$ < $\alpha$, we reject $H_0$ and support the claim. 
+At least one feed supplement has significant impact.
+
+```{r}
+coef <- summary(chickwts_lm)$coefficients[, "Estimate"]
+```
+
+The estimation results are listed as follows: 
+casein: `r coef["(Intercept)"]`, 
+horsebean: `r coef["(Intercept)"] + coef["feedhorsebean"]`, 
+linseed: `r coef["(Intercept)"] +  coef["feedlinseed"]`, 
+meatmeal: `r coef["(Intercept)"] +  coef["feedmeatmeal"]`, 
+soybean: `r coef["(Intercept)"] +  coef["feedsoybean"]`, 
+sunflower: `r coef["(Intercept)"] +  coef["feedsunflower"]`. 
+
+So, sunflower is the best feed supplemnts. 
+
 **c)** 
 <!--
 Check the ANOVA model assumptions by using relevant diagnostic tools.
 -->
+
+```{r, fig.width = 6, fig.height = 3.5}
+par(mfrow=c(1, 1))
+qqnorm(residuals(chickwts_lm))
+```
+
+Through checking normality of the residuals using QQ-plot, 
+we can confirm that the assumptions of noramlity of ANOVA satisfies. 
 
 **d)** 
 <!--
 Does the Kruskal-Wallis test arrive at the same conclusion about the effect of feed supplement as the test in b)? 
 Explain possible differences between conclusions of the Kruskal-Wallis and ANOVA tests.
 -->
+
+```{r}
+p_val <- kruskal.test(weight~feed, data=chickwts)$p.value
+```
+
+$p$ = `r p_val`. 
+For $\alpha = 0.05$, we reject $H_0$, 
+which means at least 2 distributions of the weights after feeding different feed supplement are different. 
+So ANOVA test and Kruskal-Wallis test arrive at the same conclusion, and there is no significant difference. 
+From the QQ-plot in c), we can assume the normality, so both tests can be used here. 
