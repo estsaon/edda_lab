@@ -2,7 +2,7 @@
 title: "Assignment 1"
 author: "Peter Pan, Yuxiang Wang, Yancheng Zhuang"
 date: "19 February 2021"
-output: html_document
+output: pdf_document
 fontsize: 11pt
 highlight: tango
 header-includes: \usepackage{bbm}
@@ -165,7 +165,7 @@ Comment on your findings.
 
 The data are not paired, because the experiment units are not the same, 
 which leads to the number of the samples in these two groups are different. 
-We set up `H_0` as the distribution between the weight after using meatmeal and sunflower is the same.
+We set up $H_0$` as the distribution between the weight after using meatmeal and sunflower is the same.
 
 Firstly, we perform the not-paired two samples t-test. 
 
@@ -185,7 +185,7 @@ p_val <- wilcox.test(meatmeal, sunflower)$p.value
 ```
 
 $p$ = `r p_val`. 
-For $\alpha = 0.05$, we cannot reject `H_0`, the populations are the same.
+For $\alpha = 0.05$, we cannot reject $H_0$`, the populations are the same.
 
 At last, we perform Kolmogorov-Smirnov test. 
 
@@ -193,7 +193,7 @@ At last, we perform Kolmogorov-Smirnov test.
 p_val <- ks.test(meatmeal, sunflower)$p.value
 ```
 
-$p$ = `r p_val`. For $\alpha = 0.05$, we again cannot reject `H_0`.
+$p$ = `r p_val`. For $\alpha = 0.05$, we again cannot reject $H_0$`.
 
 We find that only t-test rejects the null hypothesis. 
 After examining the assumption of the tests, we think the t-test cannot be used here. 
@@ -213,7 +213,7 @@ Give the estimated chick weights for each of the six feed supplements.
 What is the best feed supplement?
 -->
 
-We set up `H_0` as all feed supplement types have same effects. 
+We set up $H_0$` as all feed supplement types have same effects. 
 Then we perfoem ANOVA as follows. 
 
 ```{r}
