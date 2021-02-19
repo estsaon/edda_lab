@@ -2,7 +2,9 @@
 title: "Assignment 1"
 author: "Peter Pan, Yuxiang Wang, Yancheng Zhuang"
 date: "19 February 2021"
-output: pdf_document
+output:
+  html_document:
+    df_print: paged
 fontsize: 11pt
 highlight: tango
 header-includes: \usepackage{bbm}
@@ -378,7 +380,7 @@ We set up $H_0$ as there is no difference between the time differences of these 
 p_val <- wilcox.test(run_energy$before - run_energy$after, run_lemo$before - run_lemo$after)
 ```
 
-We get $p$ = `r p_val`. 
+We get $p$ = `r p_val$p.value`. 
 So we don't reject null hypothesis. 
 Therefore, there is no difference between these two populations. 
 
@@ -470,7 +472,7 @@ Then we perfoem ANOVA as follows.
 
 ```{r}
 chickwts_lm <- lm(weight~feed, data=chickwts)
-p_val <- anova(chickwts_lm)["feed", ]$p.value
+p_val <- anova(chickwts_lm)["feed", ][[5]]
 ```
 
 For $\alpha = 0.05$, $p$ = `r p_val`. 
