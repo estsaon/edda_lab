@@ -393,10 +393,15 @@ Is there a similar objection to the design of the experiment in c)?
 Comment on all your findings in this exercise.
 -->
 
-If the main aim is to test whether drinking the energy drink speeds up the running, 
+Firstly, if the main aim is to test whether drinking the energy drink speeds up the running, 
 then we needs to get higher sensitivity and power. 
 For tests, the power is positively associated with sample size.
 For both b) and c), the sample size is too small. 
+
+Secondly, the first run might have effects on the second run. 
+However, the experiment should be set up so that any other type of dependence is eliminated,
+a difference in outcomes is due to the treatment only.
+For c), time difference between the types of drink don't effect each other. 
 
 Under current design of the experiment, we find that the drinks don't have much effect. 
 
