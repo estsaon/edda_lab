@@ -168,7 +168,7 @@ Comment on your findings.
 
 The data are not paired, because the experiment units are not the same, 
 which leads to the number of the samples in these two groups are different. 
-We set up `H_0` as the distribution between meatmeal and sunflower is the same.
+We set up `H_0` as the distribution between the weight after using meatmeal and sunflower is the same.
 
 Firstly, we perform the not-paired two samples t-test. 
 
@@ -179,7 +179,7 @@ p_val <- t.test(meatmeal, sunflower)$p.value
 ```
 
 The result indicates that `p` = `r p_val`. For $\alpha = 0.05$, we reject the null hypothesis, 
-that is, the distribution between meatmeal and sunflower is not the same.
+that is, the distribution between the weight after using meatmeal and sunflower is not the same.
 
 Secondly, we perform the Mann-Whitney test. 
 
@@ -216,17 +216,17 @@ Give the estimated chick weights for each of the six feed supplements.
 What is the best feed supplement?
 -->
 
-We set up `H_0` as all feed types has no factor effect. 
+We set up `H_0` as all feed supplement types have same effects. 
 Then we perfoem ANOVA as follows. 
 
 ```{r}
 chickwts_lm <- lm(weight~feed, data=chickwts)
-p_val <- anova(chickwts_lm)$p.value
+p_val <- anova(chickwts_lm)["feed", ]$p.value
 ```
 
 For $\alpha = 0.05$, $p$ = `r p_val`. 
 Since $p$ < $\alpha$, we reject $H_0$ and support the claim. 
-At least one feed has significant impact.
+At least one feed supplement has significant impact.
 
 ```{r}
 coef <- summary(chickwts_lm)$coefficients[, "Estimate"]
@@ -260,13 +260,13 @@ we can confirm that the assumptions of noramlity of ANOVA satisfies.
 Does the Kruskal-Wallis test arrive at the same conclusion about the effect of feed supplement as the test in b)? 
 Explain possible differences between conclusions of the Kruskal-Wallis and ANOVA tests.
 -->
+
 ```{r}
-    chickwts_data <- chickwts
-    attach(chickwts_data)
-    p_value <- kruskal.test(weight, feed)$p.value
+p_val <- kruskal.test(weight~feed, data=chickwts)$p.value
 ```
 
-For $\alpha = 0.05$, $p$ = `r p_value`. 
-Since $p$ < $\alpha$, we reject $H_0$ and support the claim. At least 2 distributions are different.
-ANOVA test and kruskal test have the same result, the main differences between them are:
-Kruskal-Wallis one-way analysis of variance is mainly used when comparing between multiple groups, because the groups do not meet the normal distribution and cannot be compared by ANOVA, the statistical similarity test method often used.
+$p$ = `r p_val`. 
+For $\alpha = 0.05$, we reject $H_0$, 
+which means at least 2 distributions of the weights after feeding different feed supplement are different. 
+So ANOVA test and Kruskal-Wallis test arrive at the same conclusion, and there is no significant difference. 
+From the QQ-plot in c), we can assume the normality, so both tests can be used here. 
