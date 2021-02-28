@@ -99,11 +99,11 @@ attach(data_search); par(mfrow=c(1,2))
 factor_interface = as.factor(interface)
 factor_skill = as.factor(skill)
 
-boxplot(time~factor_interface)
-interaction.plot(factor_interface, factor_skill, time)
+boxplot(time~interface)
+interaction.plot(skill, interface, time)
 ```
 
-We notice that different interfaces can lead to different time.
+Left plot: we can notice that different interfaces can lead to different time. Right plot: lines are not parallel, which means interfaces have effect on time.
 
 Then we adapt ANOVA test.
 
@@ -126,7 +126,7 @@ factor_skill 2: `r coef["(Intercept)"] + coef["factor_skill2"]`,
 factor_skill 3: `r coef["(Intercept)"] +  coef["factor_skill3"]`,
 factor_skill 4: `r coef["(Intercept)"] + coef["factor_skill4"]`, 
 factor_skill 5: `r coef["(Intercept)"] +  coef["factor_skill5"]`.
-So, interface 3 require the longest search time. The combination of skill level 2 and interface 2 requires the shortest search time.
+So, interface 3 require the longest search time. The combination of skill level 1 and interface 1 requires the shortest search time.
 
 
 To estimate the search time of the combination of skill level 3 and interface 3, we apply additive model and summary again.
