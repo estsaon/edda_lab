@@ -110,12 +110,42 @@ Test whether the type of feedingstuffs influences milk production using an ordin
 Estimate the difference in milk production.
 -->
 
+fixed effect model:
+
+```{r}
+cow <- read.table("cow.txt", header=TRUE)
+#factor_feed = as.factor(treatment)
+cow$treatment <- factor(cow$treatment); cow$per <- factor(cow$per);
+milk_lm <- lm(milk~per+id+treatment, data=cow)
+anova(milk_lm)
+```
+type of feedingstuffs have no influences on milk.
+
+```{r}
+summary(milk_lm)
+```
+
+the difference in milk production is -0.510.
+
 **b)** 
 <!--
 Repeat a) and b) by performing a mixed effects analysis, modelling the cow effect as a random effect (use the function lmer). 
 Compare your results to the results found by using a fixed effects model. 
 (You will need to install the R-package lme4, which is not included in the standard distribution of R.)
 -->
+
+mixed effect model:
+
+```{r}
+library(lme4); attach(cow)
+milk_lm = lmer(milk~treatment+order+per+(1|id), REML = FALSE)
+cow_summary = summary(milk_lm)
+
+milk_lm1 = lmer(milk~order+per+(1|id), REML = FALSE)
+anova(milk_lm1, milk_lm)
+```
+
+fixed effect has the same result with mixed effect. The different feeds have no influence on milk production.
 
 **c)** 
 <!--
@@ -126,6 +156,12 @@ Does this produce a valid test for a difference in milk production?
 Is its conclusion compatible with the one obtained in a)? 
 Why?
 -->
+
+```{r}
+t.test(milk[treatment=="A"], milk[treatment=="B"], paired=TRUE)$p.value
+```
+
+the test is valid, it does have the same conclusion with a). since the test wash out cross-over effects, where there is no learning effect.
 
 ## Exercise 4
 <!--
