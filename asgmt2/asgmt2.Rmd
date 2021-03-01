@@ -1,8 +1,10 @@
 ---
 title: "Assignment 2"
-author: "Group 59: Peter Pan, Yuxiang Wang, Yancheng Zhuang"
+author: 'Group 59: Peter Pan, Yuxiang Wang, Yancheng Zhuang'
 date: "8 March 2021"
-output: pdf_document
+output:
+  html_document:
+    df_print: paged
 fontsize: 11pt
 highlight: tango
 header-includes: \usepackage{bbm}
@@ -147,11 +149,22 @@ The file austen.txt contains counts of different words in some of Austen’s nov
 Discuss whether a contingency table test for independence or for homogeneity is most appropriate here.
 -->
 
+Since the data is consisted of two factors---column and word, the interest is different word count in different columns. Moreover, more than 80% of the expected counts are above 5. Hence, a contingency table test is appropriate to test independence.
+
 **b)** 
 <!--
 Using the given data set, investigate whether Austen herself was consistent in her different novels.
 Where are the main inconsistencies?
 -->
+
+```{r}
+austen <- read.table("austen.txt", header=TRUE)
+z <- chisq.test(austen)
+#(z$observed-z$expected)/sqrt(z$expected)
+z$stdres
+```
+
+the p < 0.05, Austen herself was inconsistent in her different novels.
 
 **c)** 
 <!--
@@ -159,6 +172,8 @@ Was the admirer successful in imitating Austen’s style?
 Perform a test including all data. 
 If he was not successful, where are the differences?
 -->
+
+From the table of residuals we see that sand2 has relatively more an's and with's, and has relatively less that's. Hence, the admirer isn't successful in imitating Austen's style.
 
 ## Exercise 5
 <!--
