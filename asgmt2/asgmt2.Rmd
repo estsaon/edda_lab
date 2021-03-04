@@ -30,6 +30,7 @@ Present an R-code for this randomization process.
 
 ```{r}
 data_bread <- read.table("bread.txt", header=TRUE)
+attach(data_bread)
 I<-3; J<-2; N<-3
 rbind(
     rep(c("cold", "intermedia", "warm"), each=N*J), 
@@ -79,17 +80,25 @@ We formalize the hypothesis to test as follows:
 
 ```{r}
 # factor_env = as.factor(environment); factor_hum = as.factor(humidity)
-bread_lm <- lm(hours ~ environment * humidity)
+bread_lm <- lm(hours ~ environment * humidity, data = data_bread)
 res <- anova(bread_lm)
 res
 ```
 
-According to the analysis of variance, 
+Then we investigate the significant of individual factors and their interaction through summary.
+
+```{r}
+summary(bread_lm)$coefficients
+```
+
+According to the analysis of variance and summary,
 we can notice that $p$ of factor temperature is `r res$Pr[1]`, 
 $p$ of factor humidity is `r res$Pr[2]`, 
 and $p$ of two factors interaction is `r res$Pr[3]`. 
 Since $p-values$ are all less than $\alpha = 0.05$, so we reject $H_A$, $H_B$ and $H_AB$
-that is to say both of the factors and their interaction have great effect on the decay.
+that is to say both of the factors and their interaction have great effect on the decay. 
+We also can see that the decay time decreases with the environment gets wetter and the temperature gets warmer. Moreover, the interaction of two factors stresses the explication.
+
 
 **d)** 
 <!--
@@ -97,14 +106,17 @@ Which of the two factors has the greatest (numerical) influence on the decay?
 Is this a good question?
 -->
 
-As we see, the previous analysis says there are interaction, so we use treatment model to summary.
+As we see, the previous analysis says there are interaction, so we use addictive model to summary, which eliminates their interaction.
 
 ```{r}
-summary <- summary(bread_lm)$coefficients
+# summary <- summary(bread_lm)$coefficients
+bread_addctive_lm <- lm(hours ~ environment + humidity, data = data_bread) 
+summary(bread_addctive_lm)$coefficients
 ```
 
 We find that the factors of wet humidity and warm temperature have the largest estimate values, 
 so they have the greatest influence on the decay.
+Nevertheless, we think this is not a good question due to the existence of interaction, since we hardly ignore the effect of interaction to the decay.
 
 **e)** 
 <!--
