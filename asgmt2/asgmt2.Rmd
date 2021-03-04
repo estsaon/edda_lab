@@ -2,9 +2,7 @@
 title: "Assignment 2"
 author: 'Group 59: Peter Pan, Yuxiang Wang, Yancheng Zhuang'
 date: "8 March 2021"
-output:
-  html_document:
-    df_print: paged
+output: pdf_document
 fontsize: 11pt
 highlight: tango
 header-includes: \usepackage{bbm}
@@ -31,11 +29,13 @@ Present an R-code for this randomization process.
 -->
 
 ```{r}
-data_bread <- read.table("bread.txt", header = TRUE)
-I<-3;J<-2;N<-3
-random = rbind(rep(c("cold","intermedia","warm"), each=N*J),
-      rep(c("dry","wet"), N*I), 
-      sample(1:(N*I*J)))
+data_bread <- read.table("bread.txt", header=TRUE)
+I<-3; J<-2; N<-3
+rbind(
+    rep(c("cold", "intermedia", "warm"), each=N*J), 
+    rep(c("dry", "wet"), N*I), 
+    sample(1:(N*I*J))
+)
 ```
 
 **b)** 
@@ -45,11 +45,20 @@ Make two boxplots of hours versus the two factors and two interaction plots
 -->
 
 ```{r, fig.height=3, fig.width=6, fig.align='center'}
-par(mar = rep(2, 4));attach(data_bread)
-boxplot(hours~environment)
-boxplot(hours~humidity)
-interaction.plot(environment, humidity, hours)
-interaction.plot(humidity, environment, hours)
+# par(mar=rep(2, 4))
+par(mfrow=c(1, 2))
+# attach(data_bread)
+boxplot(hours~environment, data=data_bread)
+boxplot(hours~humidity, data=data_bread)
+```
+
+```{r, fig.height=4, fig.width=6, fig.align='center'}
+with(data_bread, {
+        par(mfrow=c(2, 1), mar = c(3, 0, 0, 0))
+        interaction.plot(environment, humidity, hours)
+        interaction.plot(humidity, environment, hours)
+    }
+)
 ```
 
 **c)** 
@@ -59,16 +68,28 @@ Describe the interaction effect in words.
 -->
 
 We use 2-way ANOVA test to perform the test.
-For the third question, we set up $H_0$ as $\alpha_i = 0$ for all i; $H_0$ as $\beta_j = 0$ for all j; $H_0$ as $\gamma_{ij} = 0$ for all (i,j).
+We formalize the hypothesis to test as follows: 
+
+1. $H_A$ as $\alpha_i = 0$ for all i; 
+
+2. $H_B$ as $\beta_j = 0$ for all j; 
+
+3. $H_AB$ as $\gamma_{ij} = 0$ for all (i,j).
 
 
 ```{r}
-factor_env = as.factor(environment); factor_hum = as.factor(humidity)
-bread_lm = lm(hours~factor_env*factor_hum)
-res = anova(bread_lm)
+# factor_env = as.factor(environment); factor_hum = as.factor(humidity)
+bread_lm <- lm(hours ~ environment * humidity)
+res <- anova(bread_lm)
+res
 ```
 
-According to the analysis of variance, we can notice that $p$ of factor temperature is `r res$Pr[1]`, $p$ of factor humidity is `r res$Pr[2]`, and $p$ of two factors interaction is `r res$Pr[3]`. Since $p-values$ are less than $\alpha = 0.05$, so we reject $H_0$, that is to say both of factors and their interaction have great effect on the decay.
+According to the analysis of variance, 
+we can notice that $p$ of factor temperature is `r res$Pr[1]`, 
+$p$ of factor humidity is `r res$Pr[2]`, 
+and $p$ of two factors interaction is `r res$Pr[3]`. 
+Since $p-values$ are all less than $\alpha = 0.05$, so we reject $H_A$, $H_B$ and $H_AB$
+that is to say both of the factors and their interaction have great effect on the decay.
 
 **d)** 
 <!--
@@ -79,10 +100,11 @@ Is this a good question?
 As we see, the previous analysis says there are interaction, so we use treatment model to summary.
 
 ```{r}
-summary = summary(bread_lm)$coefficients
+summary <- summary(bread_lm)$coefficients
 ```
 
-We find that the factors of wet humidity and warm temperature have the largest estimate values, so they have the greatest influence on the decay.
+We find that the factors of wet humidity and warm temperature have the largest estimate values, 
+so they have the greatest influence on the decay.
 
 **e)** 
 <!--
@@ -90,14 +112,19 @@ Check the model assumptions by using relevant diagnostic tools.
 Are there any outliers?
 -->
 
-We check the normality and the assumption of equal variances. The left plot is the distribution of residuals, which should look normal. The right plot is the fitted plot versus residuals, there should not exist systematically pattern.
+We check the normality and the assumption of equal variances. 
+The left plot is the distribution of residuals, which should look normal. 
+The right plot is the fitted plot versus residuals, there should not exist systematically pattern.
 
 ```{r, fig.height=3, fig.width=6, fig.align='center'}
-par(mfrow=c(1,2))
-qqnorm(residuals(bread_lm)); plot(fitted(bread_lm),residuals(bread_lm))
+par(mfrow=c(1, 2))
+qqnorm(residuals(bread_lm))
+plot(fitted(bread_lm), residuals(bread_lm))
 ```
 
-Left plot: normal is doubtful, because the line isn't straight enough. Right plot: the spread of residuals seems to be symmetric with fitted values, and some data points seem extreme, so there could exist outliers.
+Left plot: normal is doubtful, because the line isn't straight enough. 
+Right plot: the spread of residuals seems to be symmetric with fitted values, 
+and some data points seem extreme, so there could exist outliers.
 
 ## Exercise 2 
 <!--
