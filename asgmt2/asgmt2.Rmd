@@ -104,28 +104,28 @@ The order of the types of food was randomized over the cows.
 The observed data can be found in the file cow.txt, where A and B refer to the types of feedingstuffs.
 -->
 
+```{r}
+setwd("/Users/wang/Desktop/EDDA_P4/Assign2")
+cow <- read.table("cow.txt", sep="")
+head(cow)
+options(digits = 3)
+```
+
+
 **a)** 
 <!--
 Test whether the type of feedingstuffs influences milk production using an ordinary “fixed effects” model, fitted with lm. 
 Estimate the difference in milk production.
 -->
 
-fixed effect model:
+Regression model:
 
 ```{r}
-cow <- read.table("cow.txt", header=TRUE)
-#factor_feed = as.factor(treatment)
-cow$treatment <- factor(cow$treatment); cow$per <- factor(cow$per);
-milk_lm <- lm(milk~per+id+treatment, data=cow)
-anova(milk_lm)
-```
-type of feedingstuffs have no influences on milk.
-
-```{r}
-summary(milk_lm)
+fit <- lm(milk~treatment + order, data = cow)
+summary(fit)
 ```
 
-the difference in milk production is -0.510.
+As can be seen from the above figure, when treatment is B, it is inversely proportional to milk production.
 
 **b)** 
 <!--
@@ -134,18 +134,15 @@ Compare your results to the results found by using a fixed effects model.
 (You will need to install the R-package lme4, which is not included in the standard distribution of R.)
 -->
 
-mixed effect model:
+Mixed linear regression:
 
 ```{r}
-library(lme4); attach(cow)
-milk_lm = lmer(milk~treatment+order+per+(1|id), REML = FALSE)
-cow_summary = summary(milk_lm)
-
-milk_lm1 = lmer(milk~order+per+(1|id), REML = FALSE)
-anova(milk_lm1, milk_lm)
+library(lme4)
+fit <- lmer(milk~treatment + (treatment | order), data = cow)
+summary(fit)
 ```
 
-fixed effect has the same result with mixed effect. The different feeds have no influence on milk production.
+As can be seen from the above figure, when treatment is B, it is inversely proportional to milk production, but after adding a fixed effect, it can be found that their coefficient is -0.707.
 
 **c)** 
 <!--
@@ -158,10 +155,10 @@ Why?
 -->
 
 ```{r}
-t.test(milk[treatment=="A"], milk[treatment=="B"], paired=TRUE)$p.value
+t.test(cow$milk[cow$treatment == "A"], cow$milk[cow$treatment == "B"], paire = TRUE)
 ```
 
-the test is valid, it does have the same conclusion with a). since the test wash out cross-over effects, where there is no learning effect.
+As can be seen from the above figure, the p-value of the t-test is greater than 0.05, which is 0.8281, accepting the null hypothesis, so it is considered that there is no difference between them, only the impact of treatment on milk production is tested, and the impact of other factors on treatment is not considered.
 
 ## Exercise 4
 <!--
