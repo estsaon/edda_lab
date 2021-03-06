@@ -144,12 +144,22 @@ The file austen.txt contains counts of different words in some of Austen’s nov
     chapters 12 and 24 of Sanditon (both written by the admirer, Sand2).
 -->
 
+
+```{r}
+setwd("/Users/wang/Desktop/EDDA_P4/Assign2")
+austen <- read.table("austen.txt", sep="")
+head(austen)
+```
+
+
 **a)** 
 <!--
 Discuss whether a contingency table test for independence or for homogeneity is most appropriate here.
 -->
 
-Since the data is consisted of two factors---column and word, the interest is different word count in different columns. Moreover, more than 80% of the expected counts are above 5. Hence, a contingency table test is appropriate to test independence.
+Test independence:
+Null hypothesis: the number of chapters in a novel is not independent
+Alternative hypothesis: the number of chapters in a novel is independent
 
 **b)** 
 <!--
@@ -157,14 +167,13 @@ Using the given data set, investigate whether Austen herself was consistent in h
 Where are the main inconsistencies?
 -->
 
-```{r}
-austen <- read.table("austen.txt", header=TRUE)
-z <- chisq.test(austen)
-#(z$observed-z$expected)/sqrt(z$expected)
-z$stdres
-```
+Null hypothesis: Austin herself is consistent in her different novels
+Alternative hypothesis: Austin herself is inconsistent in her different novels
 
-the p < 0.05, Austen herself was inconsistent in her different novels.
+```{r}
+chisq.test(austen[, 1:2])
+```
+According to the above results, the p value is 0.5, which is less than 0.05. Therefore, accept the original hypothesis and consider that they are consistent.
 
 **c)** 
 <!--
@@ -173,7 +182,17 @@ Perform a test including all data.
 If he was not successful, where are the differences?
 -->
 
-From the table of residuals we see that sand2 has relatively more an's and with's, and has relatively less that's. Hence, the admirer isn't successful in imitating Austen's style.
+Null hypothesis: the admirer successfully imitated Austin's style
+Alternative hypothesis: the admirer did not succeed in imitating Austin's style
+
+```{r}
+chisq.test(austen[, 1:3])
+```
+As can be seen from the above figure, the p-value is 0.2, so I believe that the null hypothesis is accepted, that is, whether the admirer 1 successfully imitated Austin's style.
+```{r}
+chisq.test(austen[, c(1, 2, 4)])
+```
+As can be seen from the above figure, the p-value is 0.2, so we believe that the null hypothesis is accepted, that is, the admirer 2 has not successfully imitated Austin's style.
 
 ## Exercise 5
 <!--
