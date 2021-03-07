@@ -168,8 +168,8 @@ Perform the Friedman test to test whether there is an effect of interface.
 We use the Friedman test to test whether there is an effect of interface.
 
 ```{r}
-with(data_search, 
-     p_value <- friedman.test(time, interface, skill)$p.value)
+p_value <- with(data_search, 
+     friedman.test(time, interface, skill)$p.value)
 ```
 
 Since the $p$ = `r p_value` < $\alpha = 0.05$, we reject $H_0$, there is a treatment effect. 
@@ -183,14 +183,15 @@ Is it right/wrong or useful/not useful to perform this test on this dataset?
 We perform the one-way anova test and ignore the variable skill.
 
 ```{r}
+data_search <- read.table("search.txt", header=TRUE)
 search_oneway_lm <- lm(time~interface, data=data_search)
 res <- anova(search_oneway_lm)
 p_value <- res$Pr[1]
 res
 ```
 
-We get the $p$ = `r p_value` > $\alpha = 0.05$. 
-Hence, we can't reject $H_0$, the factor interface is not significant. 
+We get the $p$ = `r p_value` < $\alpha = 0.05$. 
+Hence, we reject $H_0$, the factor interface is significant. 
 However, it's wrong to perform this test on this dataset, because these samples don't have equal variances. Moreover, there could exist interaction between two factors.
 
 ## Exercise 3
