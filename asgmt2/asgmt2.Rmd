@@ -1,8 +1,10 @@
 ---
 title: "Assignment 2"
-author: "Group 59: Peter Pan, Yuxiang Wang, Yancheng Zhuang"
+author: 'Group 59: Peter Pan, Yuxiang Wang, Yancheng Zhuang'
 date: "8 March 2021"
-output: pdf_document
+output:
+  html_document:
+    df_print: paged
 fontsize: 11pt
 highlight: tango
 header-includes: \usepackage{bbm}
@@ -110,12 +112,62 @@ Test whether the type of feedingstuffs influences milk production using an ordin
 Estimate the difference in milk production.
 -->
 
+We set up $H_0$ as 
+
+1. cow factor does not affect lactation; 
+
+2. the first treatment or the second treatment does not affect lactation;
+
+3. the type of feedingstuffs/treatment does not affect lactation. 
+
+```{r}
+cow <- read.table("cow.txt", sep="")
+cow$id <- factor(cow$id)
+cow$per <- factor(cow$per)
+cow_lm <- lm(milk ~ id + per + treatment, data=cow)
+result <- anova(cow_lm)
+result
+```
+
+The results show that cow factor (p = `r result["id", ]$Pr` < 0.05) and 
+whether a cow goes through its first treatment or second (p = `r result["per", ]$Pr` < 0.05) do affect lactation. 
+But the factor of interest, namely type of treatment (p = `r result["treatment", ]$Pr` > 0.05) does not affect lactation significantly. 
+
+```{r}
+result <- summary(cow_lm)$coefficients
+result
+```
+
+We can see that the difference in milk production is estimated as `r result["treatmentB", "Estimate"]`, 
+so treatment B has a lower lactation compared to treatment A. 
+
 **b)** 
 <!--
 Repeat a) and b) by performing a mixed effects analysis, modelling the cow effect as a random effect (use the function lmer). 
 Compare your results to the results found by using a fixed effects model. 
 (You will need to install the R-package lme4, which is not included in the standard distribution of R.)
 -->
+
+```{r}
+library(lme4, quietly=TRUE)
+cow_lmer <- lmer(milk ~ treatment + order + per + (1 | id), data=cow, REML=FALSE)
+cow_lmer_without_treatment <- lmer(milk ~ order + per + (1 | id), data=cow, REML=FALSE)
+result <- anova(cow_lmer_without_treatment, cow_lmer)
+result
+```
+
+According to the result (`r result["cow_lmer", "Pr(>Chisq)"]` > 0.05), 
+modelling the cow effect as a random effect still conclude that the type of the treatment
+does not significantly affect the lactation, which is the same with the previous fixed effect model. 
+
+```{r}
+library(lme4, quietly=TRUE)
+cow_lmer_without_per <- lmer(milk ~ treatment + order + (1 | id), data=cow, REML=FALSE)
+result <- anova(cow_lmer_without_per, cow_lmer)
+result
+```
+
+Whether a cow goes through its first treatment or second (p = `r result["cow_lmer", "Pr(>Chisq)"]` < 0.05) still affect lactation significantly. 
 
 **c)** 
 <!--
@@ -126,6 +178,27 @@ Does this produce a valid test for a difference in milk production?
 Is its conclusion compatible with the one obtained in a)? 
 Why?
 -->
+
+```{r}
+result <- with(cow, t.test(milk[treatment=="A"], milk[treatment=="B"], paired=TRUE))
+result
+```
+
+According to the result, the p-value of the t-test is `r result$p.value` which is greater than 0.05, results in not rejecting the null hypothesis. 
+But t-test might be not suitable here, because 
+
+1. only the impact of treatment on milk production is tested, and the impact of other factors is not considered; 
+
+2. repeated measures may not be exchangeable because of time effect (cows are growing) and learning effect (cows become used to the feedingstuffs).
+
+But the conclusion is still compatible with the one obtained in a), or even identical p-value if we modeling ignoring per factor as follows: 
+```{r}
+anova(lm(milk ~ treatment + id, data=cow))
+```
+
+This is because F-test is the generalization of t-test.  
+In the case of two levels of repeated measurements, 
+F-statistic of the ANOVA is identical to the t-statistic for paired t-test. 
 
 ## Exercise 4
 <!--
