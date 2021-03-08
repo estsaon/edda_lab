@@ -257,7 +257,9 @@ r.squared <- c()
 for (variable in variables)
     r.squared <- c(
         r.squared, 
-        summary(lm(paste("expend", "~", "employ", "+", variable), data=expenses_crime))$r.squared
+        summary(
+            lm(paste("expend", "~", "employ", "+", variable), data=expenses_crime)
+        )$r.squared
     )
 data.frame(variables, r.squared)
 ```
@@ -270,7 +272,12 @@ r.squared <- c()
 for (variable in variables)
     r.squared <- c(
         r.squared, 
-        summary(lm(paste("expend", "~", "employ", "+", "lawyers", "+", variable), data=expenses_crime))$r.squared
+        summary(
+            lm(
+                paste("expend", "~", "employ", "+", "lawyers", "+", variable), 
+                data=expenses_crime
+            )
+        )$r.squared
     )
 data.frame(variables, r.squared)
 ```
@@ -315,7 +322,7 @@ Check the model assumptions by using relevant diagnostic tools.
 For model assumptions, we need to check both the linearity of the relation and the normality of the errors. 
 Firstly, we use the scatter plot again to yield overall picture.
 
-```{r}
+```{r, fig.height=3, fig.width=6, fig.align='center'}
 expenses_crime <- expenses_crime[c("expend", "lawyers", "employ")]
 expenses_crime_lm <- lm(expend ~ lawyers + employ, data=expenses_crime)
 pairs(expenses_crime)
@@ -336,14 +343,14 @@ There is no curved pattern in the scatter plot.
 
 Thirdly, added variable plot / partial regression plot. 
 
-```{r}
+```{r, fig.height=3, fig.width=6, fig.align='center'}
 car::avPlots(expenses_crime_lm)
 ```
 
 From the plot we can identify influence points like observation 5 and 8.
 15 and 32 is dubious, and the results are different from a). 
 
-```{r}
+```{r, fig.height=3, fig.width=6, fig.align='center'}
 olsrr::ols_plot_cooksd_chart(expenses_crime_lm, type=3)
 ```
 
@@ -362,7 +369,7 @@ Also the linearity of the relation is easier to be seen.
 Lastly, we check the normality using QQ-plot. 
 
 ```{r, fig.height=3, fig.width=6, fig.align='center'}
-par(mfrow=(1, 2))
+par(mfrow=c(1, 2))
 qqnorm(residuals(expenses_crime_lm), xlab="expenses_crime_lm")
 qqnorm(residuals(expenses_crime_lm_filtered), xlab="expenses_crime_lm_filtered")
 ```
