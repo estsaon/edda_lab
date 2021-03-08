@@ -144,22 +144,14 @@ The file austen.txt contains counts of different words in some of Austen’s nov
     chapters 12 and 24 of Sanditon (both written by the admirer, Sand2).
 -->
 
-
-```{r}
-setwd("/Users/wang/Desktop/EDDA_P4/Assign2")
-austen <- read.table("austen.txt", sep="")
-head(austen)
-```
-
-
 **a)** 
 <!--
 Discuss whether a contingency table test for independence or for homogeneity is most appropriate here.
 -->
 
-Test independence:
-Null hypothesis: the number of chapters in a novel is not independent
-Alternative hypothesis: the number of chapters in a novel is independent
+In order to analyze the word frequencies in relation to Jane Austen’s novel Sanditon, 
+we need to check whether the distributions over column factors/word counts are equal between the original work of Austen and her admirers. 
+So, a contingency table test for homogeneity is most appropriate here.
 
 **b)** 
 <!--
@@ -171,9 +163,22 @@ Null hypothesis: Austin herself is consistent in her different novels
 Alternative hypothesis: Austin herself is inconsistent in her different novels
 
 ```{r}
-chisq.test(austen[, 1:2])
+austen <- read.table("austen.txt", sep="")
+z <- chisq.test(austen[, c('Sense', 'Emma', 'Sand1')])
+z
 ```
-According to the above results, the p value is 0.5, which is less than 0.05. Therefore, accept the original hypothesis and consider that they are consistent.
+According to the above results, the p value is `r result$p.value`, which is greater than 0.05. 
+Therefore, we don't reject the original hypothesis and consider that the novels are consistent with each other.
+
+```{r}
+z$residuals
+```
+
+We look at the contributions of each cell to the chi-squared statistics to determine the main inconsistencies. 
+We find: 
+1) chapters 1 and 6 of Sanditon have relatively more 'a'; 
+2) chapters 1, 2 and 3 of Emma have relatively fewer 'a', 'an', 'that' and more 'without';  
+3) chapters 1 and 3 of Sense and Sensibility have have relatively fewer 'this' and 'with'.
 
 **c)** 
 <!--
@@ -182,17 +187,20 @@ Perform a test including all data.
 If he was not successful, where are the differences?
 -->
 
-Null hypothesis: the admirer successfully imitated Austin's style
-Alternative hypothesis: the admirer did not succeed in imitating Austin's style
+```{r}
+z <- chisq.test(austen)
+z
+```
+
+As can be seen from the result, 
+the p-value is `r result$p.value` < 0.05 after adding the admirer's word frequencies, 
+which lead us to reject the null hypothesis.
 
 ```{r}
-chisq.test(austen[, 1:3])
+z$residuals
 ```
-As can be seen from the above figure, the p-value is 0.2, so I believe that the null hypothesis is accepted, that is, whether the admirer 1 successfully imitated Austin's style.
-```{r}
-chisq.test(austen[, c(1, 2, 4)])
-```
-As can be seen from the above figure, the p-value is 0.2, so we believe that the null hypothesis is accepted, that is, the admirer 2 has not successfully imitated Austin's style.
+
+We check the residuals again and find that the admirer uses relatively more "an", "with" and fewer "that". 
 
 ## Exercise 5
 <!--
