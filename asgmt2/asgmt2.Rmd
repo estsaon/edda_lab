@@ -167,7 +167,7 @@ austen <- read.table("austen.txt", sep="")
 z <- chisq.test(austen[, c('Sense', 'Emma', 'Sand1')])
 z
 ```
-According to the above results, the p value is `r result$p.value`, which is greater than 0.05. 
+According to the above results, the p value is `r z$p.value`, which is greater than 0.05. 
 Therefore, we don't reject the original hypothesis and consider that the novels are consistent with each other.
 
 ```{r}
@@ -177,8 +177,8 @@ z$residuals
 We look at the contributions of each cell to the chi-squared statistics to determine the main inconsistencies. 
 We find: 
 1) chapters 1 and 6 of Sanditon have relatively more 'a'; 
-2) chapters 1, 2 and 3 of Emma have relatively fewer 'a', 'an', 'that' and more 'without';  
-3) chapters 1 and 3 of Sense and Sensibility have have relatively fewer 'this' and 'with'.
+2) chapters 1, 2 and 3 of Emma have relatively fewer 'a', 'an', 'that' and 'without';  
+3) chapters 1 and 3 of Sense and Sensibility have have relatively fewer 'a' and 'with'.
 
 **c)** 
 <!--
@@ -193,8 +193,9 @@ z
 ```
 
 As can be seen from the result, 
-the p-value is `r result$p.value` < 0.05 after adding the admirer's word frequencies, 
-which lead us to reject the null hypothesis.
+the p-value is `r z$p.value` < 0.05 after adding the admirer's word frequencies, 
+which lead us to reject the null hypothesis. 
+Hence, the admirer wasn’t successful in imitating Austen’s style.
 
 ```{r}
 z$residuals
