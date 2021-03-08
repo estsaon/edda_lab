@@ -30,11 +30,38 @@ The 18 slices came from a single loaf, but were randomized to the 6 combinations
 Present an R-code for this randomization process.
 -->
 
+```{r}
+I<-3; J<-2; N<-3
+rbind(
+    rep(c("cold", "intermedia", "warm"), each=N*J), 
+    rep(c("dry", "wet"), N*I), 
+    sample(1:(N*I*J))
+)
+```
+
 **b)** 
 <!--
 Make two boxplots of hours versus the two factors and two interaction plots 
 (keeping the two factors fixed in turn).
 -->
+
+```{r, fig.height=3, fig.width=6, fig.align='center'}
+data_bread <- read.table("bread.txt", header=TRUE)
+par(mfrow=c(1, 2))
+boxplot(hours~environment, data=data_bread)
+boxplot(hours~humidity, data=data_bread)
+```
+
+```{r, fig.height=4, fig.width=6, fig.align='center'}
+with(data_bread, {
+        par(mfrow=c(2, 1), mar = c(3, 0, 0, 0))
+        interaction.plot(environment, humidity, hours)
+        interaction.plot(humidity, environment, hours)
+    }
+)
+```
+
+The lines in the interaction plot are unparallel, there might exists interactions between temperature and humidity. 
 
 **c)** 
 <!--
@@ -42,17 +69,82 @@ Perform an analysis of variance to test for effect of the factors temperature, h
 Describe the interaction effect in words.
 -->
 
+We use 2-way ANOVA test to perform the test.
+We formalize the hypothesis to test as follows: 
+
+1. $H_A$ as $\alpha_i = 0$ for all $i$; 
+
+2. $H_B$ as $\beta_j = 0$ for all $j$; 
+
+3. $H_{AB}$ as $\gamma_{ij} = 0$ for all ($i$,$j$).
+
+
+```{r}
+bread_lm <- lm(hours ~ environment * humidity, data=data_bread)
+res <- anova(bread_lm)
+res
+```
+
+Then we investigate the significant of individual factors and their interaction through summary.
+
+```{r}
+coef <- summary(bread_lm)$coefficients
+coef
+```
+
+According to the analysis of variance and summary,
+we can notice that: 
+
+1. $p$ of factor temperature is `r res$Pr[1]`, 
+$p$ of factor humidity is `r res$Pr[2]`, 
+and $p$ of two factors interaction is `r res$Pr[3]`. 
+Since $p$-values are all less than $\alpha = 0.05$, so we reject $H_A$, $H_B$ and $H_AB$
+that is to say both of the factors and their interaction have great effect on the decay.
+
+2. For the interaction of intermediate environment and wet humidity, 
+$p$-value = `r coef["environmentintermediate:humiditywet", "Pr(>|t|)"]` < 0.05, 
+which indicates there is a significant interaction between intermediate temperature and wet humidity. 
+The case is the same for interaction of warm environment and wet humidity, 
+$p$-value = `r coef["environmentwarm:humiditywet", "Pr(>|t|)"]` < 0.05. 
+
 **d)** 
 <!--
 Which of the two factors has the greatest (numerical) influence on the decay? 
 Is this a good question?
 -->
 
+As we see, the previous analysis concludes that there are significant interaction between the two factors. 
+We use addictive model to summary, which eliminates their interaction effects. 
+
+```{r}
+bread_addctive_lm <- lm(hours ~ environment + humidity, data = data_bread) 
+summary(bread_addctive_lm)$coefficients
+```
+
+We find that the factors of wet humidity and warm temperature have the largest estimate values, 
+so they have the greatest influence on the decay.
+Nevertheless, we think it is not a good question due to the existence of interaction, 
+since we cannot ignore the effect of interaction between the two factors on the decay.
+
 **e)** 
 <!--
 Check the model assumptions by using relevant diagnostic tools. 
 Are there any outliers?
 -->
+
+We check the normality and the assumption of equal variances. 
+The left plot is the distribution of residuals, which should look normal. 
+The right plot is the fitted plot versus residuals, there should not exist systematically pattern. 
+
+```{r, fig.height=3, fig.width=6, fig.align='center'}
+par(mfrow=c(1, 2))
+qqnorm(residuals(bread_lm))
+plot(fitted(bread_lm), residuals(bread_lm))
+```
+
+Left plot: normality is doubtful, the points are not approximately on a straight line. 
+Right plot: the spread of residuals seems to be symmetric with fitted values, 
+and some data points seem relatively bigger, so there could exist outliers.
 
 ## Exercise 2 
 <!--
