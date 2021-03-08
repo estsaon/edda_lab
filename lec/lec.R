@@ -206,6 +206,7 @@ qqnorm(residuals(melonaov))
 # HA: αi = 0 for every i (no main effect of factor A)
 # HA: βi = 0 for every j (no main effect of factor B)
 # --------------------------------------------------- # 
+# design
 n_level_of_factor_a <- 4 # I
 n_level_of_factor_b <- 2 # J
 n_observations_per_group <- 3 # N
@@ -215,39 +216,42 @@ rbind(
     sample(1:(n_observations_per_group * n_level_of_factor_a * n_level_of_factor_b)) # experimental units
 )
 
+# data input
 pvc <- read.table(file="pvc.txt", header=TRUE)
 par(mfrow=c(1, 2))
-boxplot(psize~operator, data=pvc); boxplot(psize~resin, data=pvc)
+boxplot(psize~operator, data=pvc); boxplot(psize~resin, data=pvc) # interactions are not visible
 
+# interaction plot
 with(pvc, {
     par(mfrow=c(1, 2))
     interaction.plot(operator, resin, psize)
     interaction.plot(resin, operator, psize)
 })
 
+# testing
 pvc$operator=as.factor(pvc$operator)
 pvc$resin=as.factor(pvc$resin)
-
 pvc_lm <- lm(psize ~ operator * resin, data=pvc)
 anova(pvc_lm)
 
+# estimates in the default treatment contrasts
 summary(pvc_lm)
 
+# estimates in the sum treatment contrasts
 contrasts(pvc$operator) = contr.sum
 contrasts(pvc$resin) = contr.sum
-pvc_lm = lm(psize ~ operator * resin, data=pvc)
+pvc_lm <- lm(psize ~ operator * resin, data=pvc)
 summary(pvc_lm)
 
+# additive model (no interactions)
+anova(lm(psize ~ operator + resin, data=pvc))
+
+# diagnostics
 par(mfrow=c(1, 2))
 qqnorm(residuals(pvc_lm))
 plot(fitted(pvc_lm), residuals(pvc_lm))
 
-pvc <- read.table(file="pvc.txt", header=TRUE)
-pvc$operator=as.factor(pvc$operator)
-pvc$resin=as.factor(pvc$resin)
-pvc_lm = lm(psize ~ operator + resin, data=pvc)
-anova(pvc_lm)
-
+# one observation per cell
 composite <- read.table("composite.txt", head=TRUE)
 anova(lm(strength ~ laser * tape, data=composite))
 anova(lm(strength ~ laser + tape, data=composite))
@@ -256,53 +260,103 @@ anova(lm(strength ~ laser + tape, data=composite))
 # randomized block design
 # H0: α1 = ... = αl = 0
 # --------------------------------------------------- # 
+# design
 n_level_of_factor_a <- 4 # I
 n_blocks <- 5 # J
-n_observations_per_group <- 3 # N
+n_observations_per_group <- 1 # N
 for (i in 1:n_blocks) 
     sample(1:(n_observations_per_group * n_level_of_factor_a))
 
+
+# data input
 penicillin <- read.table("penicillin.txt", head=TRUE)
 xtabs(yield ~ treat + blend, data=penicillin)
 
+# graphics
 par(mfrow=c(1, 2))
 boxplot(yield ~ treat, data=penicillin)
 boxplot(yield ~ blend, data=penicillin)
 
-par(mfrow=c(1, 2))
 with(pvc, {
     par(mfrow=c(1, 2))
     interaction.plot(treat, blend, yield)
     interaction.plot(blend, treat, yield)
 })
 
+# testing and estimation
 penicillin_lm <- lm(yield ~ treat + blend, data=penicillin)
 anova(penicillin_lm)
 summary(penicillin_lm)
+
+# diagnostics
+qqnorm(residuals(penicillin_lm))
+plot(fitted(penicillin_lm), residuals(penicillin_lm))
 # --------------------------------------------------- # 
 # repeated measures
 # --------------------------------------------------- # 
+# data input
+ashinalong <- read.table("ashinalong.txt", head=TRUE)
 
+# analysis
+ashinalong$id <- factor(ashinalong$id)
+ashinalong_lm <- lm(pain ~ treatment + id, data=ashinalong)
+anova(aovashina)
 # --------------------------------------------------- # 
 # Friedman test
 # --------------------------------------------------- # 
+# data input
+itch <- read.table("itch.txt", header=TRUE, sep=",")
+duration <- as.vector(as.matrix(subset(itch, select=-c(Subject))))
+id <- as.factor(rep(1 : nrow(itch), times=ncol(itch) - 1))
+drug <- as.factor(rep(1 : (ncol(itch) - 1), each=nrow(itch)))
+itch <- data.frame(cbind(duration, id, drug))
 
-# --------------------------------------------------- # 
-# incomplete block designs
-# --------------------------------------------------- # 
+# graphics
+par(mfrow=c(1, 2))
+boxplot(duration ~ drug, xlab="drug", ylab="duration", data=itch)
+with(itch, interaction.plot(drug, id, duration))
 
-# --------------------------------------------------- # 
-# random effects
-# --------------------------------------------------- # 
-
+# testing
+friedman.test(duration, drug, id, data=itch)
+itch_lm <- lm(duration ~ drug + id, data=itch)
+anova(itch_lm)
+qqnorm(itch_lm$residuals)
 # --------------------------------------------------- # 
 # crossover design
 # --------------------------------------------------- # 
+# data input
+ashinal <- read.table("ashinal.txt", head=TRUE)
 
+# fixed effects
+ashinal$id <- factor(ashinal$id)
+ashinal$period <- factor(ashinal$period)
+ashinal_lm <- lm(pain ~ treatment + period + id, data=ashinal)
+anova(ashinal_lm)
+summary(ashinal_lm)
+
+# mixed effects
+library(lme4)
+ashina_lmer <- lmer(pain ~ treatment + sequence + period + (1 | id), REML=FALSE, data=ashinal)
+summary(ashina_lmer)
+ashina_lmer_without_treatment <- lmer(pain ~ sequence + period + (1 | id), REML=FALSE, data=ashinal)
+anova(ashina_lmer_without_treatment, ashina_lmer)
 # --------------------------------------------------- # 
 # split-plot design
 # --------------------------------------------------- # 
+# data input
+wheat <- read.table("wheat.txt", header=TRUE)
 
+# fixed effects
+wheat$spray <- factor(wheat$spray)
+wheat$variety <- factor(wheat$variety)
+wheat_lm <- lm(yield ~ spray * variety + farm + farm : spray, data=wheat)
+summary(wheat_lm)
+
+# mixed effects
+wheat_lmer <- lmer(yield ~ spray * variety + (1 | farm) + (1 | farm : spray), REML=FALSE, data=wheat)
+summary(wheat_lmer)
+wheat_lmer_without_variety <- lmer(yield ~ spray + (1 | farm) + (1 | farm : spray), REML=FALSE, data=wheat)
+anova(wheat_lmer_without_variety, wheat_lmer)
 # --------------------------------------------------- # 
 # contingency tables
 # --------------------------------------------------- # 
