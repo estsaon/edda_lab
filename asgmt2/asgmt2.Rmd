@@ -2,7 +2,9 @@
 title: "Assignment 2"
 author: 'Group 59: Peter Pan, Yuxiang Wang, Yancheng Zhuang'
 date: "8 March 2021"
-output: pdf_document
+output:
+  html_document:
+    df_print: paged
 fontsize: 11pt
 highlight: tango
 header-includes: \usepackage{bbm}
@@ -75,7 +77,7 @@ We formalize the hypothesis to test as follows:
 
 2. $H_B$ as $\beta_j = 0$ for all j; 
 
-3. $H_AB$ as $\gamma_{ij} = 0$ for all (i,j).
+3. $H_{AB}$ as $\gamma_{ij} = 0$ for all (i,j).
 
 
 ```{r}
@@ -92,12 +94,13 @@ summary(bread_lm)$coefficients
 ```
 
 According to the analysis of variance and summary,
-we can notice that $p$ of factor temperature is `r res$Pr[1]`, 
+we can notice that
+  1. $p$ of factor temperature is `r res$Pr[1]`, 
 $p$ of factor humidity is `r res$Pr[2]`, 
 and $p$ of two factors interaction is `r res$Pr[3]`. 
 Since $p-values$ are all less than $\alpha = 0.05$, so we reject $H_A$, $H_B$ and $H_AB$
-that is to say both of the factors and their interaction have great effect on the decay. 
-We also can see that the decay time decreases with the environment gets wetter and the temperature gets warmer. Moreover, the interaction of two factors stresses the explication.
+that is to say both of the factors and their interaction have great effect on the decay.
+  2. The decay time decreases with the environment gets wetter and the temperature gets warmer. Moreover, the interaction of two factors stresses the explication.
 
 
 **d)** 
