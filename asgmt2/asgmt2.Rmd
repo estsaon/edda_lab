@@ -2,9 +2,7 @@
 title: "Assignment 2"
 author: 'Group 59: Peter Pan, Yuxiang Wang, Yancheng Zhuang'
 date: "8 March 2021"
-output:
-  html_document:
-    df_print: paged
+output: pdf_document
 fontsize: 11pt
 highlight: tango
 header-includes: \usepackage{bbm}
@@ -31,13 +29,15 @@ Present an R-code for this randomization process.
 -->
 
 ```{r}
-I<-3; J<-2; N<-3
-rbind(
+I<-3; J<-2; N<-3; 
+head(t(rbind(
     rep(c("cold", "intermedia", "warm"), each=N*J), 
     rep(c("dry", "wet"), N*I), 
     sample(1:(N*I*J))
-)
+)), n=5L)
 ```
+
+Note that here just shows part of the results due to the lack of space. 
 
 **b)** 
 <!--
@@ -45,16 +45,15 @@ Make two boxplots of hours versus the two factors and two interaction plots
 (keeping the two factors fixed in turn).
 -->
 
-```{r, fig.height=3, fig.width=6, fig.align='center'}
+```{r, fig.height=2.5, fig.width=6, fig.align='center'}
 data_bread <- read.table("bread.txt", header=TRUE)
-par(mfrow=c(1, 2))
-boxplot(hours~environment, data=data_bread)
-boxplot(hours~humidity, data=data_bread)
+par(mfrow=c(1, 2), mar=c(5, 2.5, 0, 2.5))
+boxplot(hours~environment, data=data_bread); boxplot(hours~humidity, data=data_bread)
 ```
 
-```{r, fig.height=4, fig.width=6, fig.align='center'}
+```{r, fig.height=3, fig.width=6, fig.align='center'}
 with(data_bread, {
-        par(mfrow=c(2, 1), mar = c(3, 0, 0, 0))
+        par(mfrow=c(2, 1), mar=c(3, 0, 0, 0))
         interaction.plot(environment, humidity, hours)
         interaction.plot(humidity, environment, hours)
     }
@@ -71,37 +70,30 @@ Describe the interaction effect in words.
 
 We use 2-way ANOVA test to perform the test.
 We formalize the hypothesis to test as follows: 
-
-1. $H_A$ as $\alpha_i = 0$ for all $i$; 
-
-2. $H_B$ as $\beta_j = 0$ for all $j$; 
-
-3. $H_{AB}$ as $\gamma_{ij} = 0$ for all ($i$,$j$).
-
+1) $H_A$ as $\alpha_i = 0$ for all $i$; 
+2) $H_B$ as $\beta_j = 0$ for all $j$; 
+3) $H_{AB}$ as $\gamma_{ij} = 0$ for all ($i$,$j$).
 
 ```{r}
 bread_lm <- lm(hours ~ environment * humidity, data=data_bread)
 res <- anova(bread_lm)
-res
+subset(janitor::row_to_names(rbind(rownames(res), res$Pr), 1), select=-c(Residuals))
 ```
 
 Then we investigate the significant of individual factors and their interaction through summary.
 
 ```{r}
-coef <- summary(bread_lm)$coefficients
-coef
+coef <- summary(bread_lm)$coefficients; coef
 ```
 
 According to the analysis of variance and summary,
 we can notice that: 
-
-1. $p$ of factor temperature is `r res$Pr[1]`, 
+1) $p$ of factor temperature is `r res$Pr[1]`, 
 $p$ of factor humidity is `r res$Pr[2]`, 
 and $p$ of two factors interaction is `r res$Pr[3]`. 
 Since $p$-values are all less than $\alpha = 0.05$, so we reject $H_A$, $H_B$ and $H_AB$
 that is to say both of the factors and their interaction have great effect on the decay.
-
-2. For the interaction of intermediate environment and wet humidity, 
+2) For the interaction of intermediate environment and wet humidity, 
 $p$-value = `r coef["environmentintermediate:humiditywet", "Pr(>|t|)"]` < 0.05, 
 which indicates there is a significant interaction between intermediate temperature and wet humidity. 
 The case is the same for interaction of warm environment and wet humidity, 
@@ -136,10 +128,9 @@ We check the normality and the assumption of equal variances.
 The left plot is the distribution of residuals, which should look normal. 
 The right plot is the fitted plot versus residuals, there should not exist systematically pattern. 
 
-```{r, fig.height=3, fig.width=6, fig.align='center'}
-par(mfrow=c(1, 2))
-qqnorm(residuals(bread_lm))
-plot(fitted(bread_lm), residuals(bread_lm))
+```{r, fig.height=2, fig.width=6, fig.align='center'}
+par(mfrow=c(1, 2), mar=c(3, 5, 1, 0))
+qqnorm(residuals(bread_lm), main=NULL); plot(fitted(bread_lm), residuals(bread_lm))
 ```
 
 Left plot: normality is doubtful, the points are not approximately on a straight line. 
@@ -169,8 +160,7 @@ Then we randomize students.
 
 ```{r}
 I <- 3; B <- 5; N <- 1
-for(i in 1:B) 
-    print(sample(1:(N * I)))
+for(i in 1:B) print(sample(1:(N * I)))
 ```
 
 Each row is a block level, 3 treatments are randomly distributed in each block.
@@ -186,15 +176,12 @@ Estimate the time it takes a typical user of skill level 3 to find the product o
 We set hypothesis $H_0$ as the interfaces have no impact in the search time. 
 We use both boxplot and interaction plot to have a graphical summary. 
 
-```{r, fig.height=3, fig.width=6, fig.align='center'}
+```{r, fig.height=2, fig.width=6, fig.align='center'}
 data_search <- read.table("search.txt", header=TRUE)
-
 data_search$skill <- as.factor(data_search$skill)
 data_search$interface <- as.factor(data_search$interface)
-
-par(mfrow=c(1, 2), mar = c(3, 5, 0, 0))
-boxplot(time~skill, data=data_search)
-boxplot(time~interface, data=data_search)
+par(mfrow=c(1, 2), mar=c(3, 5, 1, 0))
+boxplot(time~skill, data=data_search); boxplot(time~interface, data=data_search)
 ```
 
 Left plot: we can notice that different skills can lead to different time. 
@@ -203,7 +190,7 @@ Right plot: we can again notice that different interfaces can also lead to diffe
 
 ```{r, fig.height=3, fig.width=6, fig.align='center'}
 with(data_search, {
-    par(mfrow=c(2, 1), mar = c(3, 0, 0, 0))
+    par(mfrow=c(2, 1), mar=c(3, 0, 0, 0))
     interaction.plot(skill, interface, time)
     interaction.plot(interface, skill, time)
 })
@@ -219,17 +206,14 @@ Then we use ANOVA test under the assumption that there is no interaction between
 contrasts(data_search$interface) <- contr.sum
 contrasts(data_search$skill) <- contr.sum
 search_lm <- lm(time ~ interface + skill, data=data_search)
-res <- anova(search_lm)
-p_value <- res$Pr
-res
+res <- anova(search_lm); p_value <- res$Pr; res
 ```
 
 The $p$ of interface is `r p_value[1]`, which is smaller than 0.05. 
 Hence we reject $H_0$ and conclude that the interfaces used affect the search time.
 
 ```{r}
-coef <- summary(search_lm)$coefficients[, "Estimate"]
-coef
+coef <- summary(search_lm)$coefficients[, "Estimate"]; coef
 ```
 
 The estimation results are listed as follows: 
@@ -254,10 +238,9 @@ Check the model assumptions by using relevant diagnostic tools.
 
 We check the normality and assumptions by QQ-plot and interaction plot.
 
-```{r, fig.height=3, fig.width=6, fig.align='center'}
-par(mfrow=c(1, 2))
-qqnorm(residuals(search_lm))
-plot(fitted(search_lm), residuals(search_lm))
+```{r, fig.height=2, fig.width=6, fig.align='center'}
+par(mfrow=c(1, 2), mar=c(3, 5, 1, 0))
+qqnorm(residuals(search_lm)); plot(fitted(search_lm), residuals(search_lm))
 ```
 
 Left plot: data points are approximately on the straight line. 
@@ -272,8 +255,7 @@ Perform the Friedman test to test whether there is an effect of interface.
 We use the Friedman test to test whether there is an effect of interface.
 
 ```{r}
-p_value <- with(data_search, 
-     friedman.test(time, interface, skill)$p.value)
+p_value <- with(data_search, friedman.test(time, interface, skill)$p.value)
 ```
 
 Since the $p$ = `r p_value` < $\alpha = 0.05$, we reject $H_0$, there is a treatment effect. 
@@ -289,9 +271,7 @@ We perform the one-way anova test and ignore the variable skill.
 ```{r}
 data_search <- read.table("search.txt", header=TRUE)
 search_oneway_lm <- lm(time~interface, data=data_search)
-res <- anova(search_oneway_lm)
-p_value <- res$Pr[1]
-res
+res <- anova(search_oneway_lm); p_value <- res$Pr[1]; res
 ```
 
 We get the $p$ = `r p_value` < $\alpha = 0.05$. 
@@ -316,20 +296,15 @@ Estimate the difference in milk production.
 -->
 
 We set up $H_0$ as 
-
-1. cow factor does not affect lactation; 
-
-2. the first treatment or the second treatment does not affect lactation;
-
-3. the type of feedingstuffs/treatment does not affect lactation. 
+1) cow factor does not affect lactation; 
+2) the first treatment or the second treatment does not affect lactation;
+3) the type of feedingstuffs/treatment does not affect lactation. 
 
 ```{r}
 cow <- read.table("cow.txt", sep="")
-cow$id <- factor(cow$id)
-cow$per <- factor(cow$per)
+cow$id <- factor(cow$id); cow$per <- factor(cow$per)
 cow_lm <- lm(milk ~ id + per + treatment, data=cow)
-result <- anova(cow_lm)
-result
+result <- anova(cow_lm); result
 ```
 
 The results show that cow factor (p = `r result["id", ]$Pr` < 0.05) and 
@@ -337,8 +312,7 @@ whether a cow goes through its first treatment or second (p = `r result["per", ]
 But the factor of interest, namely type of treatment (p = `r result["treatment", ]$Pr` > 0.05) does not affect lactation significantly. 
 
 ```{r}
-result <- summary(cow_lm)$coefficients
-result
+result <- summary(cow_lm)$coefficients; result
 ```
 
 We can see that the difference in milk production is estimated as `r result["treatmentB", "Estimate"]`, 
@@ -352,25 +326,22 @@ Compare your results to the results found by using a fixed effects model.
 -->
 
 ```{r}
-library(lme4, quietly=TRUE)
-cow_lmer <- lmer(milk ~ treatment + order + per + (1 | id), data=cow, REML=FALSE)
-cow_lmer_without_treatment <- lmer(milk ~ order + per + (1 | id), data=cow, REML=FALSE)
+cow_lmer <- lme4::lmer(milk ~ treatment + order + per + (1 | id), data=cow, REML=FALSE)
+cow_lmer_without_treatment <- lme4::lmer(milk ~ order + per + (1 | id), data=cow, REML=FALSE)
 result <- anova(cow_lmer_without_treatment, cow_lmer)
-result
 ```
 
-According to the result (`r result["cow_lmer", "Pr(>Chisq)"]` > 0.05), 
+According to the result (p = `r result["cow_lmer", "Pr(>Chisq)"]` > 0.05), 
 modelling the cow effect as a random effect still conclude that the type of the treatment
 does not significantly affect the lactation, which is the same with the previous fixed effect model. 
 
 ```{r}
-library(lme4, quietly=TRUE)
-cow_lmer_without_per <- lmer(milk ~ treatment + order + (1 | id), data=cow, REML=FALSE)
+cow_lmer_without_per <- lme4::lmer(milk ~ treatment + order + (1 | id), data=cow, REML=FALSE)
 result <- anova(cow_lmer_without_per, cow_lmer)
-result
 ```
 
-Whether a cow goes through its first treatment or second (p = `r result["cow_lmer", "Pr(>Chisq)"]` < 0.05) still affect lactation significantly. 
+Whether a cow goes through its first treatment or second (p = `r result["cow_lmer", "Pr(>Chisq)"]` < 0.05) 
+still affect lactation significantly. 
 
 **c)** 
 <!--
@@ -383,16 +354,14 @@ Why?
 -->
 
 ```{r}
-result <- with(cow, t.test(milk[treatment=="A"], milk[treatment=="B"], paired=TRUE))
-result
+result <- with(cow, t.test(milk[treatment=="A"], milk[treatment=="B"], paired=TRUE)); result
 ```
 
 According to the result, the p-value of the t-test is `r result$p.value` which is greater than 0.05, results in not rejecting the null hypothesis. 
-But t-test might be not suitable here, because 
-
-1. only the impact of treatment on milk production is tested, and the impact of other factors is not considered; 
-
-2. repeated measures may not be exchangeable because of time effect (cows are growing) and learning effect (cows become used to the feedingstuffs).
+But t-test might be not suitable here, because: 
+1) only the impact of treatment on milk production is tested, and the impact of other factors is not considered; 
+2) repeated measures may not be exchangeable because of 
+time effect (cows are growing) and learning effect (cows become used to the feedingstuffs).
 
 But the conclusion is still compatible with the one obtained in a), or even identical p-value if we modeling ignoring per factor as follows: 
 ```{r}
@@ -438,8 +407,7 @@ Alternative hypothesis: Austin herself is inconsistent in her different novels
 
 ```{r}
 austen <- read.table("austen.txt", sep="")
-z <- chisq.test(austen[, c('Sense', 'Emma', 'Sand1')])
-z
+z <- chisq.test(austen[, c('Sense', 'Emma', 'Sand1')]); z
 ```
 According to the above results, the p value is `r z$p.value`, which is greater than 0.05. 
 Therefore, we don't reject the original hypothesis and consider that the novels are consistent with each other.
@@ -462,8 +430,7 @@ If he was not successful, where are the differences?
 -->
 
 ```{r}
-z <- chisq.test(austen)
-z
+z <- chisq.test(austen); z
 ```
 
 As can be seen from the result, 
@@ -500,23 +467,17 @@ Make some graphical summaries of the data.
 Investigate the problem of potential and influence points, and the problem of collinearity.
 -->
 ```{r, fig.height=3, fig.width=6, fig.align='center'}
-# library("olsrr", warn.conflicts=FALSE)
 expenses_crime <- read.table("expensescrime.txt", header=TRUE)
 cols <- c("expend", "bad", "crime", "lawyers", "employ", "pop")
 par(mfrow=c(2, 3))
-for (col in cols)
-    hist(expenses_crime[col][, 1], main=col, xlab=NULL)
+for (col in cols) hist(expenses_crime[col][, 1], main=col, xlab=NULL)
 ```
 
-```{r, fig.height=6, fig.width=6, fig.align='center'}
-pairs(expenses_crime[cols])
-```
-
-According to the histogram plot and scatter plot, 
+According to the histogram plot, 
 we can see bad, lawyers, employ and pop variables have influence points. 
 We use Cook's distance here to find these influence points. 
 
-```{r, fig.height=3, fig.width=6, fig.align='center'}
+```{r, fig.height=1.5, fig.width=6, fig.align='center'}
 expenses_crime_lm <- lm(expend ~ bad + crime + lawyers + employ + pop, data=expenses_crime)
 ckd <- olsrr::ols_prep_cdplot_data(expenses_crime_lm, type=3)$ckd
 expenses_crime[ckd[ckd$color=="outlier", c("obs")], c("state")]
@@ -527,7 +488,7 @@ We set up the threshold as 1, which leads to 4 influence points:
 observation 5, 8, 35 and 44 (CA, FC, NY and TX respectively). 
 
 We can use the scatter plot shown above to check pairwise collinearities. 
-Correlation test is also used here to supplement the scatter plot. 
+Correlation test is also used here. 
 Because according to the histogram, we can not assume normality here, 
 so we choose Spearman's rank correlation test. 
 
@@ -556,47 +517,34 @@ If step-up and step-down yield two different models, choose one and motivate you
 Firstly, we use step-up method. 
 
 ```{r}
+step_up <- function(data, response, terms, variables) {
+    r.squared <- c()
+    for (variable in variables) {
+        if (is.null(terms)) {
+            this_r.squared <- summary(lm(paste(response, "~", variable), data=data))$r.squared
+        } else {
+            terms <- paste(terms, collapse='+')
+            this_r.squared <- summary(
+                lm(paste(response, "~", terms, "+", variable), data=data))$r.squared
+        }; r.squared <- c(r.squared, this_r.squared)
+    }; print(t(data.frame(variables, r.squared)))
+}
 variables <- cols[! cols %in% c("expend")]
-r.squared <- c()
-for (variable in variables)
-    r.squared <- c(
-        r.squared, 
-        summary(lm(paste("expend", "~", variable), data=expenses_crime))$r.squared
-    )
-data.frame(variables, r.squared)
+step_up(expenses_crime, "expend", NULL, variables)
 ```
 
-The employ variable has the highest $R^2$=`r max(r.squared)`, so we select employ variable.
+The employ variable has the highest $R^2$, so we select employ variable.
 
 ```{r}
 variables <- variables[! variables %in% c("employ")]
-r.squared <- c()
-for (variable in variables)
-    r.squared <- c(
-        r.squared, 
-        summary(
-            lm(paste("expend", "~", "employ", "+", variable), data=expenses_crime)
-        )$r.squared
-    )
-data.frame(variables, r.squared)
+step_up(expenses_crime, "expend", c("employ"), variables)
 ```
 
-The lawyers variable yields the highest $R^2$ increase, let $R^2$=`r max(r.squared)`, so we add it the model. 
+The lawyers variable yields the highest $R^2$ increase, so we add it the model. 
 
 ```{r}
 variables <- variables[! variables %in% c("lawyers")]
-r.squared <- c()
-for (variable in variables)
-    r.squared <- c(
-        r.squared, 
-        summary(
-            lm(
-                paste("expend", "~", "employ", "+", "lawyers", "+", variable), 
-                data=expenses_crime
-            )
-        )$r.squared
-    )
-data.frame(variables, r.squared)
+step_up(expenses_crime, "expend", c("employ", "lawyers"), variables)
 ```
 
 Add bad, crime or pop variable does not yield significant increase, therefore we stops. 
@@ -604,70 +552,60 @@ Add bad, crime or pop variable does not yield significant increase, therefore we
 Then, we use step-down strategy to choose the variable. 
 
 ```{r}
-summary(lm(expend ~ bad + crime + lawyers + employ + pop, data=expenses_crime))$coefficients
+summary(lm(expend~bad+crime+lawyers+employ+pop, data=expenses_crime))$coefficients[, "Pr(>|t|)"]
 ```
 
 Variable crime has the highest p-value, so we remove it firstly. 
 
 ```{r}
-summary(lm(expend ~ bad + lawyers + employ + pop, data=expenses_crime))$coefficients
+summary(lm(expend ~ bad+lawyers+employ+pop, data=expenses_crime))$coefficients[, "Pr(>|t|)"]
 ```
 
 Similarly, at the level of p=0.05, 
 we remove the pop variable which is larger than 0.05 and greatest among the variables. 
 
 ```{r}
-summary(lm(expend ~ bad + lawyers + employ, data=expenses_crime))$coefficients
+summary(lm(expend ~ bad+lawyers+employ, data=expenses_crime))$coefficients[, "Pr(>|t|)"]
 ```
 
 For the same reason, we remove bad here. 
 
 ```{r}
-coef <- summary(lm(expend ~ lawyers + employ, data=expenses_crime))$coefficients
-coef
+coef <- summary(lm(expend ~ lawyers+employ, data=expenses_crime))$coefficients; coef[, "Pr(>|t|)"]
 ```
 
 All remaining explanatory variables in the model are significant, so we stop here. 
 We can see that we get the same result with the step-up method. 
 The resulting model is 
-expend = `r coef["(Intercept)", "Estimate"]` + coef["lawyers"] * lawyers + coef["employ"] * employ + error
+expend = `r coef["(Intercept)", "Estimate"]` + `r coef["lawyers", "Estimate"]` * lawyers + `r coef["employ", "Estimate"]` * employ + error
 
 **c)** 
 <!--
 Check the model assumptions by using relevant diagnostic tools. 
 -->
 For model assumptions, we need to check both the linearity of the relation and the normality of the errors. 
-Firstly, we use the scatter plot again to yield overall picture.
-
-```{r, fig.height=3, fig.width=6, fig.align='center'}
+Firstly, we plot residuals against each `X_k` in the model separately. 
+```{r, fig.height=2, fig.width=6, fig.align='center'}
 expenses_crime <- expenses_crime[c("expend", "lawyers", "employ")]
-expenses_crime_lm <- lm(expend ~ lawyers + employ, data=expenses_crime)
-pairs(expenses_crime)
-```
-
-We can again these outlying values. 
-
-Secondly, we plot residuals against each `X_k` in the model separately. 
-```{r, fig.height=3, fig.width=6, fig.align='center'}
 lawyers_lm <- lm(expend ~ lawyers, data=expenses_crime)
 employ_lm <- lm(expend ~ employ, data=expenses_crime)
-par(mfrow=c(1, 2))
-plot(residuals(lawyers_lm), expenses_crime$lawyers)
-plot(residuals(employ_lm), expenses_crime$employ)
+par(mfrow=c(1, 2), mar=c(3, 5, 1, 0))
+with(expenses_crime, {plot(residuals(lawyers_lm), lawyers); plot(residuals(employ_lm), employ)}) 
 ```
 
 There is no curved pattern in the scatter plot. 
 
-Thirdly, added variable plot / partial regression plot. 
+Secondly, added variable plot / partial regression plot. 
 
 ```{r, fig.height=3, fig.width=6, fig.align='center'}
+expenses_crime_lm <- lm(expend ~ lawyers + employ, data=expenses_crime)
 car::avPlots(expenses_crime_lm)
 ```
 
 From the plot we can identify influence points like observation 5 and 8.
 15 and 32 is dubious, and the results are different from a). 
 
-```{r, fig.height=3, fig.width=6, fig.align='center'}
+```{r, fig.height=1.5, fig.width=6, fig.align='center'}
 olsrr::ols_plot_cooksd_chart(expenses_crime_lm, type=3)
 ```
 
@@ -685,12 +623,21 @@ Also the linearity of the relation is easier to be seen.
 
 Lastly, we check the normality using QQ-plot. 
 
-```{r, fig.height=3, fig.width=6, fig.align='center'}
-par(mfrow=c(1, 2))
+```{r, fig.height=2, fig.width=6, fig.align='center'}
+par(mfrow=c(1, 2), mar=c(3, 5, 1, 0))
 qqnorm(residuals(expenses_crime_lm), xlab="expenses_crime_lm")
 qqnorm(residuals(expenses_crime_lm_filtered), xlab="expenses_crime_lm_filtered")
 ```
 
 The left one is the previous model, and the right one is the model with influence points filtered as above. 
 We can see that the normality of the previous model is dubious, 
-but after removing the influence points, the normality can be assumed. 
+but after removing the influence points, the lines are approximately on a single straight line.  
+
+```{r, fig.height=2, fig.width=6, fig.align='center'}
+par(mfrow=c(1, 2), mar=c(3, 5, 1, 0))
+plot(fitted(expenses_crime_lm), residuals(expenses_crime_lm))
+plot(fitted(expenses_crime_lm_filtered), residuals(expenses_crime_lm_filtered))
+```
+We can also see that there is no systematic change in the residuals against on the fitted values, 
+except one point that is 35 might also be considered as an influence point. 
+Thus, the normality can be assumed. 
