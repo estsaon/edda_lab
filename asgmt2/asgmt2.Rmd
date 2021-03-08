@@ -2,9 +2,7 @@
 title: "Assignment 2"
 author: 'Group 59: Peter Pan, Yuxiang Wang, Yancheng Zhuang'
 date: "8 March 2021"
-output:
-  html_document:
-    df_print: paged
+output: pdf_document
 fontsize: 11pt
 highlight: tango
 header-includes: \usepackage{bbm}
@@ -92,30 +90,40 @@ Estimate the time it takes a typical user of skill level 3 to find the product o
 -->
 
 We set hypothesis $H_0$ as the interfaces have no impact in the search time. 
-We plot the boxplot of time versus interface, and the interaction plot of interface.
+We use both boxplot and interaction plot to have a graphical summary. 
 
 ```{r, fig.height=3, fig.width=6, fig.align='center'}
 data_search <- read.table("search.txt", header=TRUE)
 
-par(mfrow=c(1, 3))
-data_search$interface <- as.factor(data_search$interface)
 data_search$skill <- as.factor(data_search$skill)
+data_search$interface <- as.factor(data_search$interface)
 
+par(mfrow=c(1, 2), mar = c(3, 5, 0, 0))
+boxplot(time~skill, data=data_search)
 boxplot(time~interface, data=data_search)
-with(data_search, interaction.plot(skill, interface, time))
-with(data_search, interaction.plot(interface, skill, time))
 ```
 
-Left plot: we can notice that different interfaces can lead to different time. 
-Middle plot: lines are not parallel, which means interfaces have effect on time.
-Right plot: lines are not parallel, which means treatment effects are different in each block.
+Left plot: we can notice that different skills can lead to different time. 
+The higher the skill factor leads to the longer time to complete the task. 
+Right plot: we can again notice that different interfaces can also lead to different time. 
+
+```{r, fig.height=3, fig.width=6, fig.align='center'}
+with(data_search, {
+    par(mfrow=c(2, 1), mar = c(3, 0, 0, 0))
+    interaction.plot(skill, interface, time)
+    interaction.plot(interface, skill, time)
+})
+```
+
+The lines in the interaction plot are unparallel, 
+there might exists interactions between the skill and the interface used to complete the task.
 
 We set up $H_0$ as the search time is the same for all 3 interfaces.
 Then we use ANOVA test under the assumption that there is no interaction between block and treatment.
 
 ```{r}
-contrasts(data_search$interface)=contr.sum
-contrasts(data_search$skill)=contr.sum
+contrasts(data_search$interface) <- contr.sum
+contrasts(data_search$skill) <- contr.sum
 search_lm <- lm(time ~ interface + skill, data=data_search)
 res <- anova(search_lm)
 p_value <- res$Pr
@@ -123,7 +131,7 @@ res
 ```
 
 The $p$ of interface is `r p_value[1]`, which is smaller than 0.05. 
-Hence we reject $H_0$ and conclude that the search time is the same for all interfaces.
+Hence we reject $H_0$ and conclude that the interfaces used affect the search time.
 
 ```{r}
 coef <- summary(search_lm)$coefficients[, "Estimate"]
@@ -150,7 +158,7 @@ $\mu + \alpha_3 + \beta_3 =$  `r coef["(Intercept)"] + (0 - sum(coef[2:3])) + co
 Check the model assumptions by using relevant diagnostic tools.
 -->
 
-We check the normality and assumptions by qq-plot and interaction plot.
+We check the normality and assumptions by QQ-plot and interaction plot.
 
 ```{r, fig.height=3, fig.width=6, fig.align='center'}
 par(mfrow=c(1, 2))
@@ -158,7 +166,9 @@ qqnorm(residuals(search_lm))
 plot(fitted(search_lm), residuals(search_lm))
 ```
 
-Both plots look normal; there is a little curve in the qq-plot.
+Left plot: data points are approximately on the straight line. 
+Right plot: there is no systematic change in the residuals against on the fitted values. 
+Thus we can assume normality.
 
 **d)** 
 <!--
@@ -192,7 +202,8 @@ res
 
 We get the $p$ = `r p_value` < $\alpha = 0.05$. 
 Hence, we reject $H_0$, the factor interface is significant. 
-However, it's wrong to perform this test on this dataset, because these samples don't have equal variances. Moreover, there could exist interaction between two factors.
+However, it's wrong to perform this test on this dataset, because these samples don't have equal variances. 
+Moreover, there could exist interaction between two factors.
 
 ## Exercise 3
 <!--
