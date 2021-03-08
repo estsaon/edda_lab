@@ -499,6 +499,53 @@ In the regression analysis, take
 Make some graphical summaries of the data. 
 Investigate the problem of potential and influence points, and the problem of collinearity.
 -->
+```{r, fig.height=3, fig.width=6, fig.align='center'}
+# library("olsrr", warn.conflicts=FALSE)
+expenses_crime <- read.table("expensescrime.txt", header=TRUE)
+cols <- c("expend", "bad", "crime", "lawyers", "employ", "pop")
+par(mfrow=c(2, 3))
+for (col in cols)
+    hist(expenses_crime[col][, 1], main=col, xlab=NULL)
+```
+
+```{r, fig.height=6, fig.width=6, fig.align='center'}
+pairs(expenses_crime[cols])
+```
+
+According to the histogram plot and scatter plot, 
+we can see bad, lawyers, employ and pop variables have influence points. 
+We use Cook's distance here to find these influence points. 
+
+```{r, fig.height=3, fig.width=6, fig.align='center'}
+expenses_crime_lm <- lm(expend ~ bad + crime + lawyers + employ + pop, data=expenses_crime)
+ckd <- olsrr::ols_prep_cdplot_data(expenses_crime_lm, type=3)$ckd
+expenses_crime[ckd[ckd$color=="outlier", c("obs")], c("state")]
+olsrr::ols_plot_cooksd_chart(expenses_crime_lm, type=3)
+```
+
+We set up the threshold as 1, which leads to 4 influence points: 
+observation 5, 8, 35 and 44 (CA, FC, NY and TX respectively). 
+
+We can use the scatter plot shown above to check pairwise collinearities. 
+Correlation test is also used here to supplement the scatter plot. 
+Because according to the histogram, we can not assume normality here, 
+so we choose Spearman's rank correlation test. 
+
+```{r}
+cor(expenses_crime[cols], method="spearman")
+```
+
+We can see pairwise collinearities between 
+bad and lawyers, bad and employ, bad and pop, 
+lawyers and employ, lawyers and pop, employ and pop. 
+
+We also use variance inflation factor to check the collinearities. 
+
+```{r}
+car::vif(expenses_crime_lm)
+```
+
+According to the VIF, we are sure that there is a collinearity problem. 
 
 **b)** 
 <!--
@@ -506,8 +553,144 @@ Fit a linear regression model to the data.
 Use both the step-up and the step-down method to find the best model. 
 If step-up and step-down yield two different models, choose one and motivate your choice. 
 -->
+Firstly, we use step-up method. 
+
+```{r}
+variables <- cols[! cols %in% c("expend")]
+r.squared <- c()
+for (variable in variables)
+    r.squared <- c(
+        r.squared, 
+        summary(lm(paste("expend", "~", variable), data=expenses_crime))$r.squared
+    )
+data.frame(variables, r.squared)
+```
+
+The employ variable has the highest $R^2$=`r max(r.squared)`, so we select employ variable.
+
+```{r}
+variables <- variables[! variables %in% c("employ")]
+r.squared <- c()
+for (variable in variables)
+    r.squared <- c(
+        r.squared, 
+        summary(
+            lm(paste("expend", "~", "employ", "+", variable), data=expenses_crime)
+        )$r.squared
+    )
+data.frame(variables, r.squared)
+```
+
+The lawyers variable yields the highest $R^2$ increase, let $R^2$=`r max(r.squared)`, so we add it the model. 
+
+```{r}
+variables <- variables[! variables %in% c("lawyers")]
+r.squared <- c()
+for (variable in variables)
+    r.squared <- c(
+        r.squared, 
+        summary(
+            lm(
+                paste("expend", "~", "employ", "+", "lawyers", "+", variable), 
+                data=expenses_crime
+            )
+        )$r.squared
+    )
+data.frame(variables, r.squared)
+```
+
+Add bad, crime or pop variable does not yield significant increase, therefore we stops. 
+
+Then, we use step-down strategy to choose the variable. 
+
+```{r}
+summary(lm(expend ~ bad + crime + lawyers + employ + pop, data=expenses_crime))$coefficients
+```
+
+Variable crime has the highest p-value, so we remove it firstly. 
+
+```{r}
+summary(lm(expend ~ bad + lawyers + employ + pop, data=expenses_crime))$coefficients
+```
+
+Similarly, at the level of p=0.05, 
+we remove the pop variable which is larger than 0.05 and greatest among the variables. 
+
+```{r}
+summary(lm(expend ~ bad + lawyers + employ, data=expenses_crime))$coefficients
+```
+
+For the same reason, we remove bad here. 
+
+```{r}
+coef <- summary(lm(expend ~ lawyers + employ, data=expenses_crime))$coefficients
+coef
+```
+
+All remaining explanatory variables in the model are significant, so we stop here. 
+We can see that we get the same result with the step-up method. 
+The resulting model is 
+expend = `r coef["(Intercept)", "Estimate"]` + coef["lawyers"] * lawyers + coef["employ"] * employ + error
 
 **c)** 
 <!--
 Check the model assumptions by using relevant diagnostic tools. 
 -->
+For model assumptions, we need to check both the linearity of the relation and the normality of the errors. 
+Firstly, we use the scatter plot again to yield overall picture.
+
+```{r, fig.height=3, fig.width=6, fig.align='center'}
+expenses_crime <- expenses_crime[c("expend", "lawyers", "employ")]
+expenses_crime_lm <- lm(expend ~ lawyers + employ, data=expenses_crime)
+pairs(expenses_crime)
+```
+
+We can again these outlying values. 
+
+Secondly, we plot residuals against each `X_k` in the model separately. 
+```{r, fig.height=3, fig.width=6, fig.align='center'}
+lawyers_lm <- lm(expend ~ lawyers, data=expenses_crime)
+employ_lm <- lm(expend ~ employ, data=expenses_crime)
+par(mfrow=c(1, 2))
+plot(residuals(lawyers_lm), expenses_crime$lawyers)
+plot(residuals(employ_lm), expenses_crime$employ)
+```
+
+There is no curved pattern in the scatter plot. 
+
+Thirdly, added variable plot / partial regression plot. 
+
+```{r, fig.height=3, fig.width=6, fig.align='center'}
+car::avPlots(expenses_crime_lm)
+```
+
+From the plot we can identify influence points like observation 5 and 8.
+15 and 32 is dubious, and the results are different from a). 
+
+```{r, fig.height=3, fig.width=6, fig.align='center'}
+olsrr::ols_plot_cooksd_chart(expenses_crime_lm, type=3)
+```
+
+According to Cook's distance again, 5 and 8 can be seen as influence points. 
+
+```{r, fig.height=3, fig.width=6, fig.align='center'}
+expenses_crime_lm_filtered <- lm(expend ~ lawyers + employ, data=expenses_crime[-c(5, 8), ])
+car::avPlots(expenses_crime_lm_filtered)
+```
+
+If we remove these two influence points, 
+we can yield better model that 
+$R^2$=`r summary(expenses_crime_lm_filtered)$r.squared` > `r summary(expenses_crime_lm)$r.squared`.
+Also the linearity of the relation is easier to be seen. 
+
+Lastly, we check the normality using QQ-plot. 
+
+```{r, fig.height=3, fig.width=6, fig.align='center'}
+par(mfrow=c(1, 2))
+qqnorm(residuals(expenses_crime_lm), xlab="expenses_crime_lm")
+qqnorm(residuals(expenses_crime_lm_filtered), xlab="expenses_crime_lm_filtered")
+```
+
+The left one is the previous model, and the right one is the model with influence points filtered as above. 
+We can see that the normality of the previous model is dubious, 
+but after removing the influence points, the normality can be assumed. 
