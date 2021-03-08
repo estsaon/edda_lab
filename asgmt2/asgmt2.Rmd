@@ -639,5 +639,5 @@ plot(fitted(expenses_crime_lm), residuals(expenses_crime_lm))
 plot(fitted(expenses_crime_lm_filtered), residuals(expenses_crime_lm_filtered))
 ```
 We can also see that there is no systematic change in the residuals against on the fitted values, 
-except one point that is 35 might also be considered as a influence point. 
+except one point that is 35 might also be considered as an influence point. 
 Thus, the normality can be assumed. 
