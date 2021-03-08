@@ -220,11 +220,36 @@ The file austen.txt contains counts of different words in some of Austen’s nov
 Discuss whether a contingency table test for independence or for homogeneity is most appropriate here.
 -->
 
+In order to analyze the word frequencies in relation to Jane Austen’s novel Sanditon, 
+we need to check whether the distributions over column factors/word counts are equal between the original work of Austen and her admirers. 
+So, a contingency table test for homogeneity is most appropriate here.
+
 **b)** 
 <!--
 Using the given data set, investigate whether Austen herself was consistent in her different novels.
 Where are the main inconsistencies?
 -->
+
+Null hypothesis: Austin herself is consistent in her different novels
+Alternative hypothesis: Austin herself is inconsistent in her different novels
+
+```{r}
+austen <- read.table("austen.txt", sep="")
+z <- chisq.test(austen[, c('Sense', 'Emma', 'Sand1')])
+z
+```
+According to the above results, the p value is `r z$p.value`, which is greater than 0.05. 
+Therefore, we don't reject the original hypothesis and consider that the novels are consistent with each other.
+
+```{r}
+z$residuals
+```
+
+We look at the contributions of each cell to the chi-squared statistics to determine the main inconsistencies. 
+We find: 
+1) chapters 1 and 6 of Sanditon have relatively more 'a'; 
+2) chapters 1, 2 and 3 of Emma have relatively fewer 'a', 'an', 'that' and 'without';  
+3) chapters 1 and 3 of Sense and Sensibility have have relatively fewer 'a' and 'with'.
 
 **c)** 
 <!--
@@ -232,6 +257,22 @@ Was the admirer successful in imitating Austen’s style?
 Perform a test including all data. 
 If he was not successful, where are the differences?
 -->
+
+```{r}
+z <- chisq.test(austen)
+z
+```
+
+As can be seen from the result, 
+the p-value is `r z$p.value` < 0.05 after adding the admirer's word frequencies, 
+which lead us to reject the null hypothesis. 
+Hence, the admirer wasn’t successful in imitating Austen’s style.
+
+```{r}
+z$residuals
+```
+
+We check the residuals again and find that the admirer uses relatively more "an", "with" and fewer "that". 
 
 ## Exercise 5
 <!--
