@@ -72,6 +72,17 @@ Number the selected students 1 to 15 and
 show how (by using R) the students could be randomized to the interfaces in a randomized block design.
 -->
 
+We take the interface as treatment and regard the skill as block factor, each combination only tests 1 time. 
+Then we randomize students.
+
+```{r}
+I <- 3; B <- 5; N <- 1
+for(i in 1:B) 
+    print(sample(1:(N * I)))
+```
+
+Each row is a block level, 3 treatments are randomly distributed in each block.
+
 **b)** 
 <!--
 Test the null hypothesis that the search time is the same for all interfaces. 
@@ -80,21 +91,121 @@ For which combination of skill level and type of interface is the search time th
 Estimate the time it takes a typical user of skill level 3 to find the product on the website if the website uses interface 3.
 -->
 
+We set hypothesis $H_0$ as the interfaces have no impact in the search time. 
+We use both boxplot and interaction plot to have a graphical summary. 
+
+```{r, fig.height=3, fig.width=6, fig.align='center'}
+data_search <- read.table("search.txt", header=TRUE)
+
+data_search$skill <- as.factor(data_search$skill)
+data_search$interface <- as.factor(data_search$interface)
+
+par(mfrow=c(1, 2), mar = c(3, 5, 0, 0))
+boxplot(time~skill, data=data_search)
+boxplot(time~interface, data=data_search)
+```
+
+Left plot: we can notice that different skills can lead to different time. 
+The higher the skill factor leads to the longer time to complete the task. 
+Right plot: we can again notice that different interfaces can also lead to different time. 
+
+```{r, fig.height=3, fig.width=6, fig.align='center'}
+with(data_search, {
+    par(mfrow=c(2, 1), mar = c(3, 0, 0, 0))
+    interaction.plot(skill, interface, time)
+    interaction.plot(interface, skill, time)
+})
+```
+
+The lines in the interaction plot are unparallel, 
+there might exists interactions between the skill and the interface used to complete the task.
+
+We set up $H_0$ as the search time is the same for all 3 interfaces.
+Then we use ANOVA test under the assumption that there is no interaction between block and treatment.
+
+```{r}
+contrasts(data_search$interface) <- contr.sum
+contrasts(data_search$skill) <- contr.sum
+search_lm <- lm(time ~ interface + skill, data=data_search)
+res <- anova(search_lm)
+p_value <- res$Pr
+res
+```
+
+The $p$ of interface is `r p_value[1]`, which is smaller than 0.05. 
+Hence we reject $H_0$ and conclude that the interfaces used affect the search time.
+
+```{r}
+coef <- summary(search_lm)$coefficients[, "Estimate"]
+coef
+```
+
+The estimation results are listed as follows: 
+interface 1: `r coef["(Intercept)"] + coef["interface1"]`, 
+interface 2: `r coef["(Intercept)"] + coef["interface2"]`, 
+interface 3: `r coef["(Intercept)"] + (0 - sum(coef[2:3]))`,
+skill 1: `r coef["(Intercept)"] + coef["skill1"]`, 
+skill 2: `r coef["(Intercept)"] + coef["skill2"]`, 
+skill 3: `r coef["(Intercept)"] + coef["skill3"]`,
+skill 4: `r coef["(Intercept)"] + coef["skill4"]`, 
+skill 5: `r coef["(Intercept)"] + (0 - sum(coef[4:6]))`.
+
+So, interface 3 require the longest search time. 
+The combination of skill level 1 and interface 1 requires the shortest search time.
+We get the estimation time of the combination of skill level 3 and interface 3 is 
+$\mu + \alpha_3 + \beta_3 =$  `r coef["(Intercept)"] + (0 - sum(coef[2:3])) + coef["skill3"]`.
+
 **c)** 
 <!--
 Check the model assumptions by using relevant diagnostic tools.
 -->
+
+We check the normality and assumptions by QQ-plot and interaction plot.
+
+```{r, fig.height=3, fig.width=6, fig.align='center'}
+par(mfrow=c(1, 2))
+qqnorm(residuals(search_lm))
+plot(fitted(search_lm), residuals(search_lm))
+```
+
+Left plot: data points are approximately on the straight line. 
+Right plot: there is no systematic change in the residuals against on the fitted values. 
+Thus we can assume normality.
 
 **d)** 
 <!--
 Perform the Friedman test to test whether there is an effect of interface.
 -->
 
+We use the Friedman test to test whether there is an effect of interface.
+
+```{r}
+p_value <- with(data_search, 
+     friedman.test(time, interface, skill)$p.value)
+```
+
+Since the $p$ = `r p_value` < $\alpha = 0.05$, we reject $H_0$, there is a treatment effect. 
+
 **e)** 
 <!--
 Test the null hypothesis that the search time is the same for all interfaces by a one-way ANOVA test, ignoring the variable skill. 
 Is it right/wrong or useful/not useful to perform this test on this dataset?
 -->
+
+We perform the one-way anova test and ignore the variable skill.
+
+```{r}
+data_search <- read.table("search.txt", header=TRUE)
+search_oneway_lm <- lm(time~interface, data=data_search)
+res <- anova(search_oneway_lm)
+p_value <- res$Pr[1]
+res
+```
+
+We get the $p$ = `r p_value` < $\alpha = 0.05$. 
+Hence, we reject $H_0$, the factor interface is significant. 
+However, it's wrong to perform this test on this dataset, because these samples don't have equal variances. 
+Moreover, there could exist interaction between two factors.
 
 ## Exercise 3
 <!--
