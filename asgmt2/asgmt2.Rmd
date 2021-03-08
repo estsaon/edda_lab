@@ -105,9 +105,6 @@ which indicates there is a significant interaction between intermediate temperat
 The case is the same for interaction of warm environment and wet humidity, 
 $p$-value = `r coef["environmentwarm:humiditywet", "Pr(>|t|)"]` < 0.05. 
 
-3. The decay time decreases with the environment gets wetter and the temperature gets warmer. 
-
-
 **d)** 
 <!--
 Which of the two factors has the greatest (numerical) influence on the decay? 
