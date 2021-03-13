@@ -1,8 +1,10 @@
 ---
 title: "Assignment 3"
-author: "Group 59: Peter Pan, Yuxiang Wang, Yancheng Zhuang"
+author: 'Group 59: Peter Pan, Yuxiang Wang, Yancheng Zhuang'
 date: "21 March 2021"
-output: pdf_document
+output:
+  html_document:
+    df_print: paged
 fontsize: 11pt
 highlight: tango
 header-includes: \usepackage{bbm}
@@ -32,6 +34,26 @@ without taking the thorax length into account.
 What are the estimated longevities for the three conditions? Comment.
 -->
 
+```{r}
+fly_data <- read.table("fruitflies.txt", header = T)
+fly_data$loglongevity <- log(fly_data$longevity)
+cols <- c("loglongevity", "activity", "thorax")
+with(fly_data, {
+  plot(loglongevity, thorax, pch=as.character(activity))
+})
+```
+
+Null hypothesis: sexual activity doesn't influence longevity.
+We use 1-way ANOVA to test the influence of sexual activity and eliminate the thorax length.
+
+```{r}
+fly_lm <- lm(loglongevity~factor(activity), data = fly_data)
+res <- anova(fly_lm)
+coef <- summary(fly_lm)$coefficients[, "Estimate"]; coef
+```
+According to the test result, since we can notice that the $p < 0.05$, which rejects the null hypothesis, the sexual activity has impact on fly's longevity. The estimated longevities of high is `r coef["(Intercept)"]`, low is `r coef["(Intercept)"] + coef["factor(activity)low"]`, isolated is `r coef["(Intercept)"] + coef["factor(activity)isolated"]`.
+So, the result indicates that less sexual activity could lead to higher longevity.
+
 **b)** 
 <!--
 Investigate whether sexual activity influences longevity by performing a statistical test, 
@@ -40,6 +62,23 @@ Does sexual activity increase or decrease longevity?
 What are the estimated longevities for the three groups, for a fly with average thorax length?
 -->
 
+Null hypothesis: sexual activity doesn't influence longevity.
+To include thorax length as an explanatory variable into the analysis, we use ANCOVA test.
+Thorax length is a numerical variable, sexual activity is a factor.
+
+```{r}
+fly_lm1 <- lm(loglongevity~factor(activity) + thorax, data = fly_data)
+drop1(fly_lm1, test="F")
+```
+Accroding to the test, we can notice that 2 factors $p< 0.05$. Hence, $H_0$ is rejected. Both factors have great influence on longevity.
+
+```{r}
+coef <- summary(fly_lm1)$coefficients[, "Estimate"]; coef
+```
+
+As we can see, the estimated longevities decrease with sexual activity.
+The estimated longevities for group 'low' is `r coef["(Intercept)"] + coef["factor(activity)low"] +  coef["thorax"]*mean(fly_data[,"thorax"]) `, isolated is `r coef["(Intercept)"] + coef["factor(activity)isolated"] +  coef["thorax"]*mean(fly_data[,"thorax"]) `, and high is `r coef["(Intercept)"] + coef["thorax"]*mean(fly_data[,"thorax"]) `, for average thorax length.
+
 **c)** 
 <!--
 How does thorax length influence longevity? 
@@ -47,11 +86,30 @@ Investigate graphically and by using an appropriate test
 whether this dependence is similar under all three conditions of sexual activity.
 -->
 
+Accroding to the result from b) and the plot from a), we can conclude that longer the thorax, longer the longevity.
+
+To test whether this dependence is similar under all three conditions of sexual activity. We make an  interaction plot.
+
+```{r}
+with(fly_data, {
+  interaction.plot(thorax, factor(activity), loglongevity)
+})
+```
+
+The lines are not parallel, so, there may exists the interaction between sexual activity and thorax length.
+
 **d)** 
 <!--
 Which of the two analyses, without or with thorax length, do you prefer? 
 Is one of the analyses wrong?
 -->
+
+```{r}
+fly_lm2 <- lm(loglongevity~factor(activity) * thorax, data = fly_data)
+anova(fly_lm2)
+```
+
+We would like to choose the analyses with thorax length, since the p-value of thorax is less than 0.05, indicating it has effect on longevity. Hence, we believe that the analyses without considering thorax should be wrong.
 
 **e)** 
 <!--
@@ -59,12 +117,32 @@ Verify normality and heteroscedasticity by making a normal QQ-plot of the residu
 and a residuals versus fitted plot, for the analysis that includes thorax length.
 -->
 
+```{r fig.height=3, fig.width=6, fig.align='center'}
+par(mfrow=c(1, 2))
+qqnorm(residuals(fly_lm1))
+plot(fitted(fly_lm1), residuals(fly_lm1))
+```
+
+Left plot: the line is straight. Right plot: OK. Therefore, we concludes that the normality and heteroscedasticity is normal.
+
 **f)**
 <!--
 Perform the ancova analysis with the number of days as the response, rather than its logarithm. 
 Verify normality and homoscedasticity of the residuals of this analysis. 
 Was it wise to use the logarithm as response?
 -->
+
+```{r fig.height=3, fig.width=6, fig.align='center'}
+fly_lm3 <- lm(longevity~factor(activity) + thorax, data = fly_data)
+res <- drop1(fly_lm3, test="F")
+par(mfrow=c(1, 2))
+qqnorm(residuals(fly_lm3))
+plot(fitted(fly_lm3), residuals(fly_lm3))
+```
+
+The ANCOVA test with the number of days as the response has the same result with a) and b).
+Moreover, normality and homoscedasticity of the residuals is the same with e).
+Hence, we think it's not necessary to use the logarithm as response.
 
 ## Exercise 2 
 <!--
