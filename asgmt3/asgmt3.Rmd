@@ -1,8 +1,10 @@
 ---
 title: "Assignment 3"
-author: "Group 59: Peter Pan, Yuxiang Wang, Yancheng Zhuang"
+author: 'Group 59: Peter Pan, Yuxiang Wang, Yancheng Zhuang'
 date: "21 March 2021"
-output: pdf_document
+output:
+  html_document:
+    df_print: paged
 fontsize: 11pt
 highlight: tango
 header-includes: \usepackage{bbm}
@@ -147,6 +149,14 @@ Perform Poisson regression on the full data set africa,
 taking miltcoup as response variable, Comment on your findings. 
 -->
 
+```{r}
+coup_data <- read.table("africa.txt", header=T)
+coup_lm <- glm(miltcoup~oligarchy+pollib+parties+pctvote+popn+size+numelec+numregim, family = poisson, data=coup_data)
+coef <- summary(coup_lm)$coefficients; coef
+```
+
+According to the result, we find that only the p-value of oligarchy, pollib, and parties are less than 0.05, which have influence on miltcoup.
+
 **b)** 
 <!--
 Use the step down approach (using output of the function summary) to 
@@ -154,9 +164,72 @@ reduce the number of explanatory variables.
 Compare the resulting model with your findings in a).
 -->
 
+We use step-down strategy to choose the variable. 
+
+```{r}
+summary(glm(miltcoup~oligarchy+pollib+parties+pctvote+popn+size+numelec+numregim, family = poisson, data=coup_data))$coefficients[, "Pr(>|z|)"]
+```
+
+Variable numelec has the highest p-value, so we remove it firstly. 
+
+```{r}
+summary(glm(miltcoup~oligarchy+pollib+parties+pctvote+popn+size+numregim, family = poisson, data=coup_data))$coefficients[, "Pr(>|z|)"]
+```
+
+Similarly, at the level of p=0.05, 
+we remove the numregim variable which is larger than 0.05 and greatest among the variables.
+
+```{r}
+summary(glm(miltcoup~oligarchy+pollib+parties+pctvote+popn+size, family = poisson, data=coup_data))$coefficients[, "Pr(>|z|)"]
+```
+
+For the same reason, we remove size here.
+
+```{r}
+summary(glm(miltcoup~oligarchy+pollib+parties+pctvote+popn, family = poisson, data=coup_data))$coefficients[, "Pr(>|z|)"]
+```
+
+Since the p-value of popn and pctvote variable is larger than 0.05 and greatest among the variables, we remove them.
+
+```{r}
+summary(glm(miltcoup~oligarchy+pollib+parties, family = poisson, data=coup_data))$coefficients[, "Pr(>|z|)"]
+```
+
+All remaining explanatory variables in the model are significant, so we stop here. 
+We can see that we get the same result with the Poisson regression in a). 
+The resulting model is 
+$\log\lambda$ = `r coef["(Intercept)", "Estimate"]` + `r coef["oligarchy", "Estimate"]` * oligarchy `r coef["pollib", "Estimate"]` * pollib + `r coef["parties", "Estimate"]` * parties
+
 **c)** 
 <!--
 Predict the number of coups for a hypothetical country for all the three levels of political liberalization
 and the averages (over all the counties in the data) of all the other (numerical) characteristics. 
 Comment on your findings.
 -->
+
+```{r}
+mean_obli <- mean(coup_data[,"oligarchy"])
+mean_part <- mean(coup_data[,"parties"])
+mean_pctv <- mean(coup_data[,"pctvote"])
+mean_popn <- mean(coup_data[,"popn"])
+mean_size <- mean(coup_data[,"size"])
+mean_nume <- mean(coup_data[,"numelec"])
+mean_numr <- mean(coup_data[,"numregim"])
+
+res <- numeric(3)
+for(i in 0:2)
+  res[i] <- exp(
+      coef["(Intercept)", "Estimate"]
+    + coef["oligarchy", "Estimate"]*mean_obli 
+    + coef["pollib", "Estimate"] * i 
+    + coef["parties", "Estimate"] * mean_part 
+    + coef["pctvote", "Estimate"]*mean_pctv 
+    + coef["popn", "Estimate"]*mean_popn 
+    + coef["size", "Estimate"]*mean_size 
+    + coef["numelec", "Estimate"]*mean_nume
+    + coef["numregim", "Estimate"]*mean_numr
+  )
+res
+```
+
+We find that if a country has the averages of oligarchy and parties, the number of coups will less than 2, which decreases with the increasing of the political liberalization.
