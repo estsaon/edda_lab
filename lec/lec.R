@@ -335,10 +335,9 @@ anova(ashinal_lm)
 summary(ashinal_lm)
 
 # mixed effects
-library(lme4)
-ashina_lmer <- lmer(pain ~ treatment + sequence + period + (1 | id), REML=FALSE, data=ashinal)
+ashina_lmer <- lme4::lmer(pain ~ treatment + sequence + period + (1 | id), REML=FALSE, data=ashinal)
 summary(ashina_lmer)
-ashina_lmer_without_treatment <- lmer(pain ~ sequence + period + (1 | id), REML=FALSE, data=ashinal)
+ashina_lmer_without_treatment <- lme4::lmer(pain ~ sequence + period + (1 | id), REML=FALSE, data=ashinal)
 anova(ashina_lmer_without_treatment, ashina_lmer)
 # --------------------------------------------------- # 
 # split-plot design
@@ -353,9 +352,9 @@ wheat_lm <- lm(yield ~ spray * variety + farm + farm : spray, data=wheat)
 summary(wheat_lm)
 
 # mixed effects
-wheat_lmer <- lmer(yield ~ spray * variety + (1 | farm) + (1 | farm : spray), REML=FALSE, data=wheat)
+wheat_lmer <- lme4::lmer(yield ~ spray * variety + (1 | farm) + (1 | farm : spray), REML=FALSE, data=wheat)
 summary(wheat_lmer)
-wheat_lmer_without_variety <- lmer(yield ~ spray + (1 | farm) + (1 | farm : spray), REML=FALSE, data=wheat)
+wheat_lmer_without_variety <- lme4::lmer(yield ~ spray + (1 | farm) + (1 | farm : spray), REML=FALSE, data=wheat)
 anova(wheat_lmer_without_variety, wheat_lmer)
 # --------------------------------------------------- # 
 # contingency tables
@@ -488,3 +487,84 @@ bodyfat_lm2 <- lm(Fat ~ Triceps + Midarm, data=bodyfat)
 vif(bodyfat_lm2)
 bodyfat_lm2 <- lm(Fat ~ Thigh, data=bodyfat)
 vif(bodyfat_lm2)
+# --------------------------------------------------- # 
+# ancova
+# --------------------------------------------------- # 
+# data input
+fiber <- read.table("fiber.txt", header=TRUE)
+
+# graphics
+plot(strength ~ thickness, pch=as.character(type), data=fiber)
+
+# testing
+fiber$type <- as.factor(fiber$type)
+fiber_lm <- lm(strength ~ thickness + type,data=fiber)
+anova(fiber_lm)
+drop1(fiber_lm, test="F")
+
+# estimation
+fiber_lm <- lm(strength ~ thickness + type, data=fiber)
+summary(fiber_lm)
+
+# diagnostics
+par(mfrow=c(1, 2))
+qqnorm(residuals(fiber_lm))
+plot(fitted(fiber_lm), residuals(fiber_lm))
+
+# interaction between factor and predictor
+plot(strength~thickness,pch=unclass(type))
+for (i in 1:3) 
+    abline(lm(strength ~ thickness, data=fiber[fiber$type==i, ]))
+
+fiber_lm <- lm(strength ~ type * thickness, data=fiber)
+anova(fiber_lm)
+summary(fiber_lm)
+# --------------------------------------------------- # 
+# lasso, ridge and elastic net
+# --------------------------------------------------- # 
+x <- as.matrix(data[, -1]) # remove the response variable
+y <- as.double(as.matrix(data[, 1])) # only the response variable
+train <- sample(1:nrow(x), 0.67 * nrow(x)) # train by using 2/3 of the data
+x.train <- x[train, ]; y.train <- y[train] # data to train
+x.test <- x[-train, ]; y.test <- y[-train] # data to test the prediction quality
+
+lasso.mod <- glmnet::glmnet(x.train, y.train, alpha=1)
+cv.lasso <- glmnet::cv.glmnet(x.train, y.train, alpha=1, type.measure='mse')
+
+plot(lasso.mod, label=T, xvar="lambda") # have a look at the lasso path
+plot(cv.lasso) # the best lambda by cross-validation
+plot(cv.lasso$glmnet.fit, xvar="lambda", label=T)
+
+lambda.min <- lasso.cv$lambda.min
+lambda.lse <- lasso.cv$lambda.lse
+coef(lasso.model, s=lasso.cv$lambda.min) # beta's for the best lambda
+y.pred <- predict(lasso.model, s=lambda.min, newx=x.test) # predict for test
+mse.lasso <- mean((y.test - y.pred) ^ 2) # mse for the predicted test rows
+# --------------------------------------------------- # 
+# multiple comparisons
+# --------------------------------------------------- # 
+pvc <- read.table(file="pvc.txt", header=TRUE)
+pvc$operator <- as.factor(pvc$operator)
+pvc$resin <- as.factor(pvc$resin)
+pvc_lm <- lm(psize ~ operator * resin, data=pvc)
+summary(pvc_lm)
+
+pvc_mult <- multcomp::glht(pvc_lm, linfct=multcomp::mcp(resin="Tukey"))
+summary(pvc_mult)
+
+p.raw <- summary(pvc_lm)$coef[, 4] # vector of individual (raw) p-values
+p.raw <- p.raw[order(p.raw)] # order the p-values
+p.val <- as.data.frame(p.raw)
+p.val$Bonferroni <- p.adjust(p.val$p.raw, method="bonferroni")
+p.val$Holm <- p.adjust(p.val$p.raw, method="holm")
+p.val$Hochberg <- p.adjust(p.val$p.raw, method="hochberg")
+p.val$BH <- p.adjust(p.val$p.raw, method="BH")
+p.val$BY <- p.adjust(p.val$p.raw, method="BY")
+round(p.val, 3)
+# --------------------------------------------------- # 
+# logistic regression
+# --------------------------------------------------- # 
+
+# --------------------------------------------------- # 
+# poisson regression
+# --------------------------------------------------- # 
