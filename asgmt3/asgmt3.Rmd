@@ -2,9 +2,7 @@
 title: "Assignment 3"
 author: 'Group 59: Peter Pan, Yuxiang Wang, Yancheng Zhuang'
 date: "21 March 2021"
-output:
-  html_document:
-    df_print: paged
+output: pdf_document
 fontsize: 11pt
 highlight: tango
 header-includes: \usepackage{bbm}
@@ -34,25 +32,31 @@ without taking the thorax length into account.
 What are the estimated longevities for the three conditions? Comment.
 -->
 
-```{r}
-fly_data <- read.table("fruitflies.txt", header = T)
+```{r, fig.height=4.5, fig.width=4.5, fig.align='center'}
+fly_data <- read.table("fruitflies.txt", header=TRUE)
 fly_data$loglongevity <- log(fly_data$longevity)
-cols <- c("loglongevity", "activity", "thorax")
-with(fly_data, {
-  plot(loglongevity, thorax, pch=as.character(activity))
-})
+with(fly_data, plot(loglongevity, thorax, pch=as.character(activity)))
 ```
 
 Null hypothesis: sexual activity doesn't influence longevity.
 We use 1-way ANOVA to test the influence of sexual activity and eliminate the thorax length.
 
 ```{r}
-fly_lm <- lm(loglongevity~factor(activity), data = fly_data)
-res <- anova(fly_lm)
+fly_lm <- lm(loglongevity ~ activity, data=fly_data)
+res <- anova(fly_lm); res
+```
+According to the test result, we can notice that the $p < 0.05$, which leads us to reject the null hypothesis.  
+So, without taking the thorax length into account, the sexual activity has impact on fly's longevity. 
+
+```{r}
 coef <- summary(fly_lm)$coefficients[, "Estimate"]; coef
 ```
-According to the test result, since we can notice that the $p < 0.05$, which rejects the null hypothesis, the sexual activity has impact on fly's longevity. The estimated longevities of high is `r coef["(Intercept)"]`, low is `r coef["(Intercept)"] + coef["factor(activity)low"]`, isolated is `r coef["(Intercept)"] + coef["factor(activity)isolated"]`.
-So, the result indicates that less sexual activity could lead to higher longevity.
+
+The estimated loglongevities are shown above. 
+So, estimated longevity of *high* group is `r exp(coef["(Intercept)"])`, 
+estimated longevity of *low* group is `r exp(coef["(Intercept)"] + coef["activitylow"])`, 
+estimated longevity of *isolated* group is `r exp(coef["(Intercept)"] + coef["activityisolated"])`.
+The results indicate that fewer sexual activities lead to higher longevity.
 
 **b)** 
 <!--
