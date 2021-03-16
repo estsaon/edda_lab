@@ -2,7 +2,9 @@
 title: "Assignment 3"
 author: 'Group 59: Peter Pan, Yuxiang Wang, Yancheng Zhuang'
 date: "21 March 2021"
-output: pdf_document
+output:
+  html_document:
+    df_print: paged
 fontsize: 11pt
 highlight: tango
 header-includes: \usepackage{bbm}
@@ -96,7 +98,12 @@ Investigate graphically and by using an appropriate test
 whether this dependence is similar under all three conditions of sexual activity.
 -->
 
-Accroding to the result from b) and the plot from a), we can conclude that longer the thorax, longer the longevity.
+```{r, fig.height=4.5, fig.width=4.5, fig.align='center'}
+plot(loglongevity~thorax, pch=unclass(activity) ,data=fly_data)
+activities <- c("isolated", "low", "high")
+for(activity in activities) abline(lm(loglongevity~thorax,data=fly_data[fly_data$activity==activity,]))
+```
+Plot: the lines are not parallel, so we can conclude that the interaction between factor and predictor exists. And we can also say that longer the thorax, longer the longevity.
 
 To test whether this dependence is similar under all three conditions of sexual activity,  we make an interaction plot.
 
@@ -106,19 +113,23 @@ with(fly_data, interaction.plot(thorax, activity, loglongevity))
 
 The lines are not parallel, so, there may exists the interaction between sexual activity and thorax length.
 
-**d)** 
-<!--
-Which of the two analyses, without or with thorax length, do you prefer? 
-Is one of the analyses wrong?
--->
+We also test again by considering the interaction of factor and predictor.
 
 ```{r}
 fly_lm2 <- lm(loglongevity~factor(activity) * thorax, data = fly_data)
 anova(fly_lm2)
 ```
 
-We would like to choose the analyses with thorax length, since the p-value of thorax is less than 0.05, 
+Since the p-value of thorax is less than 0.05, 
 indicating it has effect on longevity. 
+
+**d)** 
+<!--
+Which of the two analyses, without or with thorax length, do you prefer? 
+Is one of the analyses wrong?
+-->
+
+According to c), we would like to choose the analyses with thorax length.
 Hence, we believe that the analyses without considering thorax should be wrong.
 
 **e)** 
@@ -154,6 +165,7 @@ plot(fitted(fly_lm3), residuals(fly_lm3))
 
 The ANCOVA test with the number of days as the response has the same result with a) and b).
 Moreover, normality and homoscedasticity of the residuals is the same with e).
+However, we notice that the range of residuals gets enlarged with the increasing of fitted, which may be a pattern.
 Hence, we think it's not necessary to use the logarithm as response.
 
 ## Exercise 2 
