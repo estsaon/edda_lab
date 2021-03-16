@@ -98,12 +98,10 @@ whether this dependence is similar under all three conditions of sexual activity
 
 Accroding to the result from b) and the plot from a), we can conclude that longer the thorax, longer the longevity.
 
-To test whether this dependence is similar under all three conditions of sexual activity. We make an  interaction plot.
+To test whether this dependence is similar under all three conditions of sexual activity,  we make an interaction plot.
 
-```{r}
-with(fly_data, {
-  interaction.plot(thorax, factor(activity), loglongevity)
-})
+```{r, fig.height=4.5, fig.width=4.5, fig.align='center'}
+with(fly_data, interaction.plot(thorax, activity, loglongevity))
 ```
 
 The lines are not parallel, so, there may exists the interaction between sexual activity and thorax length.
@@ -119,7 +117,9 @@ fly_lm2 <- lm(loglongevity~factor(activity) * thorax, data = fly_data)
 anova(fly_lm2)
 ```
 
-We would like to choose the analyses with thorax length, since the p-value of thorax is less than 0.05, indicating it has effect on longevity. Hence, we believe that the analyses without considering thorax should be wrong.
+We would like to choose the analyses with thorax length, since the p-value of thorax is less than 0.05, 
+indicating it has effect on longevity. 
+Hence, we believe that the analyses without considering thorax should be wrong.
 
 **e)** 
 <!--
@@ -133,13 +133,15 @@ qqnorm(residuals(fly_lm1))
 plot(fitted(fly_lm1), residuals(fly_lm1))
 ```
 
-Left plot: the line is straight. Right plot: OK. Therefore, we concludes that the normality and heteroscedasticity is normal.
+The points in the left plot are approximately on a straight line. 
+The points in the right plot do not show any pattern. 
+Therefore, we concludes that the normality and heteroscedasticity can be assumed.
 
 **f)**
 <!--
 Perform the ancova analysis with the number of days as the response, rather than its logarithm. 
 Verify normality and homoscedasticity of the residuals of this analysis. 
-Was it wise to use the logarithm as response?
+Was it wise to use the logarithm as response? 
 -->
 
 ```{r fig.height=3, fig.width=6, fig.align='center'}
