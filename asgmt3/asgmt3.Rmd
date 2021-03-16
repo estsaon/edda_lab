@@ -53,9 +53,9 @@ coef <- summary(fly_lm)$coefficients[, "Estimate"]; coef
 ```
 
 The estimated loglongevities are shown above. 
-So, estimated longevity of *high* group is `r exp(coef["(Intercept)"])`, 
-estimated longevity of *low* group is `r exp(coef["(Intercept)"] + coef["activitylow"])`, 
-estimated longevity of *isolated* group is `r exp(coef["(Intercept)"] + coef["activityisolated"])`.
+So, estimated longevity of group *high* is `r exp(coef["(Intercept)"])`, 
+estimated longevity of group *low* is `r exp(coef["(Intercept)"] + coef["activitylow"])`, 
+estimated longevity of group *isolated* is `r exp(coef["(Intercept)"] + coef["activityisolated"])`.
 The results indicate that fewer sexual activities lead to higher longevity.
 
 **b)** 
@@ -71,17 +71,23 @@ To include thorax length as an explanatory variable into the analysis, we use AN
 Thorax length is a numerical variable, sexual activity is a factor.
 
 ```{r}
-fly_lm1 <- lm(loglongevity~factor(activity) + thorax, data = fly_data)
+fly_lm1 <- lm(loglongevity ~ activity + thorax, data=fly_data)
 drop1(fly_lm1, test="F")
 ```
-Accroding to the test, we can notice that 2 factors $p< 0.05$. Hence, $H_0$ is rejected. Both factors have great influence on longevity.
+Accroding to the results, we can notice that both $p$-value of activity and thorax are smaller than $0.05$. 
+Hence, $H_0$ is rejected. 
+After taking the thorax length into account, both factors have great influence on longevity.
 
 ```{r}
 coef <- summary(fly_lm1)$coefficients[, "Estimate"]; coef
 ```
 
-As we can see, the estimated longevities decrease with sexual activity.
-The estimated longevities for group 'low' is `r coef["(Intercept)"] + coef["factor(activity)low"] +  coef["thorax"]*mean(fly_data[,"thorax"]) `, isolated is `r coef["(Intercept)"] + coef["factor(activity)isolated"] +  coef["thorax"]*mean(fly_data[,"thorax"]) `, and high is `r coef["(Intercept)"] + coef["thorax"]*mean(fly_data[,"thorax"]) `, for average thorax length.
+As we can see, the estimated loglongevities become lower with more frequent sexual activity, 
+so sexual activity decreases longevity. 
+The estimated longevity is 
+`r exp(coef["(Intercept)"] + coef["activitylow"] + coef["thorax"] * mean(fly_data[, "thorax"]))` for group *low*, 
+`r exp(coef["(Intercept)"] + coef["activityisolated"] + coef["thorax"] * mean(fly_data[, "thorax"]))` for group *isolated*, 
+and `r exp(coef["(Intercept)"] + coef["thorax"] * mean(fly_data[, "thorax"]))` for group *high*, for average thorax length.
 
 **c)** 
 <!--
