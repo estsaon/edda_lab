@@ -564,7 +564,44 @@ round(p.val, 3)
 # --------------------------------------------------- # 
 # logistic regression
 # --------------------------------------------------- # 
+# data input
+esoph <- read.table("esoph.txt", h=TRUE)
 
+# summary
+tot <- xtabs( ~ alc + tob, data=esoph)
+tot.c <- xtabs(cancer ~ alc + tob, data=esoph)
+round(tot.c / tot, 2)
+
+# graphics
+hist(esoph$age, main="age")
+totage <- xtabs( ~ age, data=esoph)
+barplot(xtabs(cancer ~ age, data=esoph) / totage)
+
+# estimation and testing
+esoph$age2 <- esoph$age ^ 2
+esoph_glm <- glm(cancer ~ age + age2 + alc + tob, data=esoph, family=binomial)
+summary(esoph_glm)
+
+esoph$age <- factor(esoph$age)
+esoph$alc <- factor(esoph$alc)
+esoph$tob <- factor(esoph$tob)
+esoph_glm2 <- glm(cancer ~ age + alc + tob, data=esoph, family=binomial)
+summary(esoph_glm2)
+predict(esoph_glm2, data.frame(age="70", alc="20", tob="35"), type="response")
+plot(c(0, coef(esoph_glm2)[2:6]), type="l")
+drop1(esoph_glm2, test="Chisq")
+
+# aggregated data format
+esophshort <- read.table("esophshort.txt", header=TRUE)
+esophshort$age2 <- esophshort$age ^ 2
+esophshort_glm <- glm(cbind(ncases, ncontrols) ~ age + age2 + alc + tob, data=esophshort, family=binomial)
+summary(esophshort_glm)
+
+# interaction between factor and contin. predictor
+esoph$age <- as.numeric(esoph$age)
+esoph_glm3 <- glm(cancer ~ age + alc, data=esoph, family=binomial)
+esoph_glm4 <- glm(cancer ~ age * alc, data=esoph, family=binomial)
+anova(glm4, test="Chisq")
 # --------------------------------------------------- # 
 # poisson regression
 # --------------------------------------------------- # 
