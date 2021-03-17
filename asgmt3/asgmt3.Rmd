@@ -2,9 +2,7 @@
 title: "Assignment 3"
 author: 'Group 59: Peter Pan, Yuxiang Wang, Yancheng Zhuang'
 date: "21 March 2021"
-output:
-  html_document:
-    df_print: paged
+output: pdf_document
 fontsize: 11pt
 highlight: tango
 header-includes: \usepackage{bbm}
@@ -90,18 +88,26 @@ Survived – survival status (1=Yes or 0=No).
 Study the data and give a few (>1) summaries (graphics or tables). 
 -->
 
+To avoid the influence of invalid data, we first remove outliers and NA data in column age.
+
 ```{r fig.height=3, fig.width=6, fig.align='center'}
 life_data <- read.table("titanic.txt", header = T)
-totAge <- xtabs(~Age, data=life_data)
-barplot(xtabs(Survived~Age, data=life_data)/totAge)
-abline(h = 0.5, col="Blue")
+life_data <- subset(life_data, Age>=1)
+
+par(mfrow=c(1, 2))
+toClass <- xtabs(~PClass, data=life_data)
+toSex <- xtabs(~Sex, data=life_data)
+barplot(xtabs(Survived~PClass, data=life_data)/toClass)
+barplot(xtabs(Survived~Sex, data=life_data)/toSex)
+
 
 sex_class <- xtabs(~Sex+PClass, data=life_data); sex_class
 sex_class.c <- xtabs(Survived~Sex+PClass, data=life_data)
 round(sex_class.c/sex_class,2)
 ```
+
 We find:
-1) The barplot shows the survival rate percentage per age group, passengers who younger than 16 and older than 52 have greater survival rate.
+1) The barplot shows the survival rate percentage per Sex level and per PClass level, we can conclude that higher passenger class has greater survival rate, and female passengers have higher survival rate than male passengers.
 2) The first table shows the total numbers of individuals for each combination of levels of Sex and PClass, male and 3rd class passengers makes up the majority.
 3) The second table shows the percentage of individuals with survived for every combination of levels of Sex and PClass, we can see that the higher class, the greater the survival rate, and female passengers get higher survival rate. 
 
@@ -139,7 +145,6 @@ life_data$Sex <- as.factor(life_data$Sex)
 life_data$PClass <- as.factor(life_data$PClass)
 life_lm1 <- glm(Survived~Age+Sex+PClass+Age:PClass+Age:Sex, data=life_data, family=binomial)
 anova(life_lm1, test="Chisq")
-
 ```
 We conclude that Ha is rejected, Hb isn't rejected.
 Hence, interaction of predictor Age with factor Sex is significant.
