@@ -150,8 +150,8 @@ life_data$Sex <- as.factor(life_data$Sex)
 life_data$PClass <- as.factor(life_data$PClass)
 life_lm1 <- glm(Survived~Age+Sex+PClass+Age:PClass+Age:Sex, data=life_data, family=binomial)
 anova(life_lm1, test="Chisq")
-
 ```
+
 We conclude that Ha is rejected, Hb isn't rejected.
 Hence, interaction of predictor Age with factor Sex is significant.
 
@@ -170,15 +170,13 @@ pre_values <- numeric(6)
 pre_data <- list()
 i <- 1
 for(sex in sexs)
-  for(class in classes) {
-    newdata <- data.frame(Age=53,Sex=sex,PClass=class)
-    newdata$Prob_survival <- predict(life_lm2,newdata,type="response")
-    pre_data[[i]] <- newdata
-    i <- i+1
-  }
-pre_data
+    for(class in classes) {
+        newdata <- data.frame(Age=53, Sex=sex, PClass=class)
+        newdata$Prob_survival <- predict(life_lm2, newdata, type="response")
+        pre_data[[i]] <- newdata
+        i <- i+1
+    }; do.call(rbind.data.frame, pre_data)
 ```
-
 
 **d)** 
 <!--
@@ -186,8 +184,11 @@ Propose a method to predict the survival status and a quality measure for your p
 describe how you would implement that method (you do not need to implement it).
 -->
 
-We put up with a method to predict the survival status. Firstly, we choose logistic regression model to create our model, since the response value is fixed and only has two level. Then, we will use ANCOVA to test the most relevant factors and the interaction. Finally, we pick those factors to fit a prediction model. 
-To measure the quality of our prediction, we will divide the data into 2 parts---test set and training set. The training set is used to find the model, then, we make use of test set to exam the accuracy of our model.
+We will use a machine learning approach to predict the survival status. 
+Firstly, we will divide the data into 2 parts: test set and training set. 
+Then, we build the logistic regression model based on the training set. 
+Finally, we will test the fitted model using the estimated parameters on the test set, 
+compare the perdicted labal withh the true label to exam the accuracy of our model. 
 
 **e)** 
 <!--
@@ -196,17 +197,19 @@ investigate whether factor passenger class (and gender) has an effect on the sur
 Implement the relevant test(s).
 -->
 
-To test with contingency table, we divide the test into two parts. Testing the dependence of passenger class and survival status, and the dependence of gender and survival status.
+To test with contingency table, we divide the test into two parts. 
+Testing the dependence of passenger class and survival status, and the dependence of gender and survival status.
 
 ```{r}
-gender_survival <- xtabs(~Sex+Survived, data=life_data)
-z1 <- chisq.test(gender_survival); z1
-
-pclass_survival <- xtabs(~PClass+Survived, data=life_data)
-z2 <- chisq.test(pclass_survival); z2
+z1 <- fisher.test(xtabs(~Sex+Survived, data=life_data)); z1
 ```
 
-According to the results, both p-values are less than 0.05, so we reject H0. Factors passenger class and gender have effect on the survival status. 
+```{r}
+z2 <- fisher.test(xtabs(~PClass+Survived, data=life_data)); z2
+```
+
+According to the results, both p-values are less than 0.05, so we reject H0. 
+Factors passenger class and gender have effect on the survival status. 
 
 **f)** 
 <!--
@@ -214,7 +217,8 @@ Is the second approach in e) wrong?
 Name both an advantage and a disadvantage of the two approaches, relative to each other. 
 -->
 
-We think the second approach in e) is not sufficient to prove the factor survival status dependent with another factor, since there should be multiple factors and interaction to influence the survival status, instead of one factor.
+We think the second approach in e) is not sufficient to prove the factor survival status dependent with another factor, 
+since there should be multiple factors and interaction to influence the survival status, instead of one factor.
 
 ## Exercise 3
 <!--
