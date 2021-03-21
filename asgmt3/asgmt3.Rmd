@@ -261,7 +261,7 @@ exp(coef["(Intercept)", "Estimate"] +
 
 ```{r}
 exp(coef["pollib1", "Estimate"] + 
-coef["(Intercept)", "Estimate"] + 
+    coef["(Intercept)", "Estimate"] + 
     coef["oligarchy", "Estimate"] * mean_obli + 
     coef["parties", "Estimate"] * mean_part)
 ```
@@ -269,7 +269,7 @@ coef["(Intercept)", "Estimate"] +
 ```{r}
 exp(coef["pollib2", "Estimate"] + 
     coef["(Intercept)", "Estimate"] + 
-    coef["oligarchy", "Estimate"] + 
+    coef["oligarchy", "Estimate"] * mean_obli + 
     coef["parties", "Estimate"] * mean_part)
 ```
 
