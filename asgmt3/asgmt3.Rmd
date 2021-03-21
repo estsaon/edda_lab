@@ -130,7 +130,8 @@ life_lm <- glm(Survived~Age+Sex+PClass, data=life_data, family=binomial)
 coef <- summary(life_lm)$coefficients; coef
 ```
 
-As we can see, the estimated odds decrease with age and PClass.
+As we can see, the estimated odds decrease with age and PClass. 
+odds = exp{3.760 - (0.0393 * Age + 2.631 * Sexmale + 1.292 * PClass2nd + 2.521 * PClass3rd)}
 
 **c)** 
 <!--
