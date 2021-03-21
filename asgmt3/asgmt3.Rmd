@@ -298,11 +298,11 @@ To test with contingency table, we divide the test into two parts.
 Testing the dependence of passenger class and survival status, and the dependence of gender and survival status.
 
 ```{r}
-z1 <- fisher.test(xtabs(~Sex+Survived, data=life_data)); z1
+z1 <- chisq.test(xtabs(~Sex+Survived, data=life_data)); z1
 ```
 
 ```{r}
-z2 <- fisher.test(xtabs(~PClass+Survived, data=life_data)); z2
+z2 <- chisq.test(xtabs(~PClass+Survived, data=life_data)); z2
 ```
 
 According to the results, both p-values are less than 0.05, so we reject H0. 
