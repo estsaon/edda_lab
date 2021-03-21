@@ -185,12 +185,50 @@ Survived – survival status (1=Yes or 0=No).
 Study the data and give a few (>1) summaries (graphics or tables). 
 -->
 
+```{r fig.height=3, fig.width=6, fig.align='center'}
+life_data <- read.table("titanic.txt", header=T)
+plot_survived <- function(col, data=life_data) {
+    tot <- xtabs(paste("~", col), data)
+    barplot(xtabs(paste("Survived", "~", col), data) / tot)
+    abline(h=0.5, col="Blue")
+}; plot_survived("Age")
+```
+
+```{r fig.height=3, fig.width=6, fig.align='center'}
+par(mfrow=c(1, 2), mar=c(5, 2.5, 0, 2.5))
+plot_survived("PClass"); plot_survived("Sex")
+```
+
+```{r fig.height=3, fig.width=6, fig.align='center'}
+sex_class <- xtabs(~Sex+PClass, data=life_data)
+sex_class.c <- xtabs(Survived~Sex+PClass, data=life_data)
+round(sex_class.c/sex_class, 2)
+```
+
+We find:
+1) The first barplot shows the survival rate percentage per age group, 
+passengers who younger than 16 and older than 52 have greater survival rate.
+2) The second and third barplot shows the survival rate percentage per age sex and class, 
+female passengers and higher-class passengers have greater survival rate.
+3) The table shows the percentage of individuals with survived for every combination of levels of Sex and PClass, 
+we can see that the higher class, the greater the survival rate, and female passengers get higher survival rate. 
+
 **b)** 
 <!--
 Fit a logistic regression model (no interactions yet) to investigate 
 the association between the survival status and the predictors PClass, Age and Sex. 
 Interpret the results in terms of odds, comment.
 -->
+
+We use logistic regression model to investigate the association between the survival status and the predictors PClass, Age and Sex. 
+
+```{r}
+life_lm <- glm(Survived~Age+Sex+PClass, data=life_data, family=binomial)
+coef <- summary(life_lm)$coefficients; coef
+```
+
+As we can see, the estimated odds decrease with age and PClass. 
+odds = exp{3.760 - (0.0393 * Age + 2.631 * Sexmale + 1.292 * PClass2nd + 2.521 * PClass3rd)}
 
 **c)** 
 <!--
@@ -200,11 +238,54 @@ For this model, report the estimate for the probability of survival for
 each combination of levels of the factors PClass and Sex for a person of age 53.
 -->
 
+Null hypothesis a: there is no interaction between predictor age and factor sex.
+Null hypothesis b: there is no interaction between predictor age and factor PClass.
+
+```{r}
+life_data$Age <- as.numeric(life_data$Age)
+life_data$Sex <- as.factor(life_data$Sex)
+life_data$PClass <- as.factor(life_data$PClass)
+life_lm1 <- glm(Survived~Age+Sex+PClass+Age:PClass+Age:Sex, data=life_data, family=binomial)
+anova(life_lm1, test="Chisq")
+```
+
+We conclude that Ha is rejected, Hb isn't rejected.
+Hence, interaction of predictor Age with factor Sex is significant.
+
+```{r}
+life_lm2 <- glm(Survived~Age+Sex+PClass+Age:Sex, data=life_data, family=binomial)
+coef <- summary(life_lm2)$coefficients; coef
+```
+
+We choose the model Age+Sex+PClass+Age:Sex.
+The estimate for the probability of survival for each combination of levels of the factors PClass and Sex for a person of age 53.
+
+```{r}
+sexs <- c("male", "female")
+classes <- c("1st", "2nd", "3rd")
+pre_values <- numeric(6)
+pre_data <- list()
+i <- 1
+for(sex in sexs)
+    for(class in classes) {
+        newdata <- data.frame(Age=53, Sex=sex, PClass=class)
+        newdata$Prob_survival <- predict(life_lm2, newdata, type="response")
+        pre_data[[i]] <- newdata
+        i <- i+1
+    }; do.call(rbind.data.frame, pre_data)
+```
+
 **d)** 
 <!--
 Propose a method to predict the survival status and a quality measure for your prediction and 
 describe how you would implement that method (you do not need to implement it).
 -->
+
+We will use a machine learning approach to predict the survival status. 
+Firstly, we will divide the data into 2 parts: test set and training set. 
+Then, we build the logistic regression model based on the training set. 
+Finally, we will test the fitted model using the estimated parameters on the test set, 
+compare the perdicted labal withh the true label to exam the accuracy of our model. 
 
 **e)** 
 <!--
@@ -213,11 +294,28 @@ investigate whether factor passenger class (and gender) has an effect on the sur
 Implement the relevant test(s).
 -->
 
+To test with contingency table, we divide the test into two parts. 
+Testing the dependence of passenger class and survival status, and the dependence of gender and survival status.
+
+```{r}
+z1 <- fisher.test(xtabs(~Sex+Survived, data=life_data)); z1
+```
+
+```{r}
+z2 <- fisher.test(xtabs(~PClass+Survived, data=life_data)); z2
+```
+
+According to the results, both p-values are less than 0.05, so we reject H0. 
+Factors passenger class and gender have effect on the survival status. 
+
 **f)** 
 <!--
 Is the second approach in e) wrong? 
 Name both an advantage and a disadvantage of the two approaches, relative to each other. 
 -->
+
+We think the second approach in e) is not sufficient to prove the factor survival status dependent with another factor, 
+since there should be multiple factors and interaction to influence the survival status, instead of one factor.
 
 ## Exercise 3
 <!--
