@@ -448,7 +448,7 @@ Comment on your findings.
 
 ```{r}
 mean_obli <- mean(coup_data[,"oligarchy"])
-mean_pctv <- mean(coup_data[,"parties"])
+mean_part <- mean(coup_data[,"parties"])
 exp(coef["(Intercept)", "Estimate"] + 
     coef["oligarchy", "Estimate"] * mean_obli + 
     coef["parties", "Estimate"] * mean_part)
