@@ -2,9 +2,7 @@
 title: "Assignment 3"
 author: 'Group 59: Peter Pan, Yuxiang Wang, Yancheng Zhuang'
 date: "21 March 2021"
-output:
-  html_document:
-    df_print: paged
+output: pdf_document
 fontsize: 11pt
 highlight: tango
 header-includes: \usepackage{bbm}
@@ -76,6 +74,7 @@ Thorax length is a numerical variable, sexual activity is a factor.
 fly_lm1 <- lm(loglongevity ~ activity + thorax, data=fly_data)
 drop1(fly_lm1, test="F")
 ```
+
 Accroding to the results, we can notice that both $p$-value of activity and thorax are smaller than $0.05$. 
 Hence, $H_0$ is rejected. 
 After taking the thorax length into account, both factors have great influence on longevity.
@@ -99,29 +98,24 @@ whether this dependence is similar under all three conditions of sexual activity
 -->
 
 ```{r, fig.height=4.5, fig.width=4.5, fig.align='center'}
-plot(loglongevity~thorax, pch=unclass(activity) ,data=fly_data)
-activities <- c("isolated", "low", "high")
-for(activity in activities) abline(lm(loglongevity~thorax,data=fly_data[fly_data$activity==activity,]))
-```
-Plot: the lines are not parallel, so we can conclude that the interaction between factor and predictor exists. And we can also say that longer the thorax, longer the longevity.
-
-To test whether this dependence is similar under all three conditions of sexual activity,  we make an interaction plot.
-
-```{r, fig.height=4.5, fig.width=4.5, fig.align='center'}
-with(fly_data, interaction.plot(thorax, activity, loglongevity))
+plot(loglongevity~thorax, pch=unclass(activity), data=fly_data)
+for(activity in c("isolated", "low", "high")) 
+    abline(lm(loglongevity~thorax, data=fly_data[fly_data$activity==activity,]))
 ```
 
-The lines are not parallel, so, there may exists the interaction between sexual activity and thorax length.
+Plot: the lines are parallel to some extent, 
+we consider that this dependence is similar under all three conditions of sexual activity.
 
-We also test again by considering the interaction of factor and predictor.
+We test again by considering the interaction of factor and predictor.
 
 ```{r}
-fly_lm2 <- lm(loglongevity~factor(activity) * thorax, data = fly_data)
-anova(fly_lm2)
+fly_lm2 <- lm(loglongevity ~ activity * thorax, data=fly_data)
+summary(fly_lm2)
 ```
 
-Since the p-value of thorax is less than 0.05, 
-indicating it has effect on longevity. 
+We can see p-value for activityisolated:thorax and activitylow:thorax are both bigger than 0.05. 
+So, we can not reject the hypothesis. 
+The dependence is similar under all three conditions of sexual activity.
 
 **d)** 
 <!--
@@ -129,8 +123,9 @@ Which of the two analyses, without or with thorax length, do you prefer?
 Is one of the analyses wrong?
 -->
 
-According to c), we would like to choose the analyses with thorax length.
-Hence, we believe that the analyses without considering thorax should be wrong.
+According to c), the thorax length has infludence on the longevity. 
+Hence, we believe that the analyses without considering thorax should be wrong and 
+we should consider the thorax length. 
 
 **e)** 
 <!--
