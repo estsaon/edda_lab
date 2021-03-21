@@ -2,9 +2,7 @@
 title: "Assignment 3"
 author: 'Group 59: Peter Pan, Yuxiang Wang, Yancheng Zhuang'
 date: "21 March 2021"
-output:
-  html_document:
-    df_print: paged
+output: pdf_document
 fontsize: 11pt
 highlight: tango
 header-includes: \usepackage{bbm}
@@ -91,20 +89,32 @@ Study the data and give a few (>1) summaries (graphics or tables).
 -->
 
 ```{r fig.height=3, fig.width=6, fig.align='center'}
-life_data <- read.table("titanic.txt", header = T)
-totAge <- xtabs(~Age, data=life_data)
-barplot(xtabs(Survived~Age, data=life_data)/totAge)
-abline(h = 0.5, col="Blue")
-
-sex_class <- xtabs(~Sex+PClass, data=life_data); sex_class
-sex_class.c <- xtabs(Survived~Sex+PClass, data=life_data)
-round(sex_class.c/sex_class,2)
+life_data <- read.table("titanic.txt", header=T)
+plot_survived <- function(col, data=life_data) {
+    tot <- xtabs(paste("~", col), data)
+    barplot(xtabs(paste("Survived", "~", col), data) / tot)
+    abline(h=0.5, col="Blue")
+}; plot_survived("Age")
 ```
-We find:
-1) The barplot shows the survival rate percentage per age group, passengers who younger than 16 and older than 52 have greater survival rate.
-2) The first table shows the total numbers of individuals for each combination of levels of Sex and PClass, male and 3rd class passengers makes up the majority.
-3) The second table shows the percentage of individuals with survived for every combination of levels of Sex and PClass, we can see that the higher class, the greater the survival rate, and female passengers get higher survival rate. 
 
+```{r fig.height=3, fig.width=6, fig.align='center'}
+par(mfrow=c(1, 2), mar=c(5, 2.5, 0, 2.5))
+plot_survived("PClass"); plot_survived("Sex")
+```
+
+```{r fig.height=3, fig.width=6, fig.align='center'}
+sex_class <- xtabs(~Sex+PClass, data=life_data)
+sex_class.c <- xtabs(Survived~Sex+PClass, data=life_data)
+round(sex_class.c/sex_class, 2)
+```
+
+We find:
+1) The first barplot shows the survival rate percentage per age group, 
+passengers who younger than 16 and older than 52 have greater survival rate.
+2) The second and third barplot shows the survival rate percentage per age sex and class, 
+female passengers and higher-class passengers have greater survival rate.
+3) The table shows the percentage of individuals with survived for every combination of levels of Sex and PClass, 
+we can see that the higher class, the greater the survival rate, and female passengers get higher survival rate. 
 
 **b)** 
 <!--
@@ -116,7 +126,7 @@ Interpret the results in terms of odds, comment.
 We use logistic regression model to investigate the association between the survival status and the predictors PClass, Age and Sex. 
 
 ```{r}
-life_lm <- glm(Survived~Age+Sex+PClass,data=life_data,family=binomial)
+life_lm <- glm(Survived~Age+Sex+PClass, data=life_data, family=binomial)
 coef <- summary(life_lm)$coefficients; coef
 ```
 
