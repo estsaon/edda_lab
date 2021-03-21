@@ -342,6 +342,27 @@ Perform Poisson regression on the full data set africa,
 taking miltcoup as response variable, Comment on your findings. 
 -->
 
+```{r}
+coup_data <- read.table("africa.txt", header=T)
+coup_data$pollib <- as.factor(coup_data$pollib)
+coup_lm <- glm(
+    miltcoup~oligarchy+pollib+parties+pctvote+popn+size+numelec+numregim, 
+    family=poisson, data=coup_data
+); coef <- summary(coup_lm)$coefficients; coef
+```
+
+According to the result, we find that only the p-value of oligarchy, pollib, and parties are less than 0.05, 
+which indicates that these variables have influence on the number of successful military coups from independence to 1989.
+When oligarchy or parties increases, the miltcoups also increase;  when pollib increases, the miltcoups decreases. 
+
+```{r, fig.height=3, fig.width=3, fig.align='center'}
+plot(fitted(coup_lm), residuals(coup_lm, type="deviance"), ylab="deviance residuals")
+```
+
+Here we also plot the fitted value against the deviance residuals, 
+which shows that residuals seem to shrink when fiited values become bigger. 
+So the model in this case is dubious. 
+
 **b)** 
 <!--
 Use the step down approach (using output of the function summary) to 
@@ -349,9 +370,105 @@ reduce the number of explanatory variables.
 Compare the resulting model with your findings in a).
 -->
 
+We use step-down strategy to choose the variable. 
+
+```{r}
+summary(glm(
+    miltcoup~oligarchy+pollib+parties+pctvote+popn+size+numelec+numregim, 
+    family=poisson, data=coup_data)
+)$coefficients[, "Pr(>|z|)"]
+```
+
+Variable numelec has the highest p-value, so we remove it firstly. 
+
+```{r}
+summary(glm(
+    miltcoup~oligarchy+pollib+parties+pctvote+popn+size+numregim, 
+    family=poisson, data=coup_data)
+)$coefficients[, "Pr(>|z|)"]
+```
+
+Similarly, at the level of p=0.05, 
+we remove the numregim variable which is larger than 0.05 and greatest among the variables.
+
+```{r}
+summary(glm(
+    miltcoup~oligarchy+pollib+parties+pctvote+popn+size, 
+    family=poisson, data=coup_data)
+)$coefficients[, "Pr(>|z|)"]
+```
+
+For the same reason, we remove size here.
+
+```{r}
+summary(glm(
+    miltcoup~oligarchy+pollib+parties+pctvote+popn, family=poisson, data=coup_data)
+)$coefficients[, "Pr(>|z|)"]
+```
+
+Remove popn. 
+
+```{r}
+summary(glm(
+    miltcoup~oligarchy+pollib+parties+pctvote, family=poisson, data=coup_data)
+)$coefficients[, "Pr(>|z|)"]
+```
+
+Remove pctvote. 
+
+```{r}
+coup_lm <- glm(miltcoup~oligarchy+pollib+parties, family=poisson, data=coup_data)
+coef <- summary(coup_lm)$coefficients; coef
+```
+
+All remaining explanatory variables in the model are significant, so we stop here. 
+We can see that we get the same result with the Poisson regression in a). 
+The resulting model is 
+$\log\lambda$ = 
+`r coef["(Intercept)", "Estimate"]` + 
+`r coef["oligarchy", "Estimate"]` * oligarchy 
+`r coef["pollib1", "Estimate"]` * pollib1 
+`r coef["pollib2", "Estimate"]` * pollib2 + 
+`r coef["parties", "Estimate"]` * parties
+
+```{r, fig.height=3, fig.width=3, fig.align='center'}
+plot(fitted(coup_lm), residuals(coup_lm, type="deviance"), ylab="deviance residuals")
+```
+
+Here we also plot the fitted value against the deviance residuals, 
+which still shows that residuals seem to shrink when fiited values become bigger, 
+but better than a). 
+
 **c)** 
 <!--
 Predict the number of coups for a hypothetical country for all the three levels of political liberalization
 and the averages (over all the counties in the data) of all the other (numerical) characteristics. 
 Comment on your findings.
 -->
+
+```{r}
+mean_obli <- mean(coup_data[,"oligarchy"])
+mean_pctv <- mean(coup_data[,"parties"])
+exp(coef["(Intercept)", "Estimate"] + 
+    coef["oligarchy", "Estimate"] * mean_obli + 
+    coef["parties", "Estimate"] * mean_part)
+```
+
+```{r}
+exp(coef["pollib1", "Estimate"] + 
+    coef["(Intercept)", "Estimate"] + 
+    coef["oligarchy", "Estimate"] * mean_obli + 
+    coef["parties", "Estimate"] * mean_part)
+```
+
+```{r}
+exp(coef["pollib2", "Estimate"] + 
+    coef["(Intercept)", "Estimate"] + 
+    coef["oligarchy", "Estimate"] * mean_obli + 
+    coef["parties", "Estimate"] * mean_part)
+```
+
+So for no civil rights for political expression, the perdict number of coups is 3. 
+For limited civil rights for expression but right to form political parties, it's 2. 
+The number is 1 for full civil rights.
+So, the number of coups decreases while the civil rights become better. 
