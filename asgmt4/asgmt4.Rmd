@@ -1,0 +1,301 @@
+---
+title: "Final Assignment"
+author: 'Yancheng Zhuang'
+date: "22 March 2021"
+output: pdf_document
+fontsize: 11pt
+highlight: tango
+header-includes: \usepackage{bbm}
+---
+
+`r options(digits=3)`
+
+## Exercise 1 
+<!--
+To investigate the effect of 3 types of diet, 78 persons were divided randomly in 3 groups, 
+the first group following diet 1, second group diet 2 and the third group diet 3. 
+Next to some other characteristics, the weight was measured before diet and after 6 weeks of diet for each person in the study. 
+The collected data is summarized in the data frame diet.txt with the following columns: 
+person – participant number, 
+gender – gender (1 = male, 0 = female), 
+age – age (years), 
+height – height (cm), 
+diet – the type of diet followed,
+preweight – weight before the diet (kg), 
+weight6weeks – weight after 6 weeks of diet (kg).
+-->
+
+**a)** 
+<!--
+By using only the columns preweight and weight6weeks, test the claim that the diet affects the weight loss. 
+Give and check the assumptions of the test(s) applied.
+-->
+
+Firstly, the normality of the weight change is checked using QQ-plot. 
+
+```{r, fig.height=4.5, fig.width=4.5, fig.align='center'}
+diet <- read.table("diet.txt", header=TRUE)
+diet$diet <- as.factor(diet$diet)
+diet$gender <- as.factor(diet$gender)
+with(diet, qqnorm(preweight - weight6weeks))
+```
+
+It can be seen that almost all points are approximately on a single line, so the normality can be assumed. 
+Thus, it is appropriate to use paired t-test here. 
+The null hypothesis is set up as the mean of the differences of the weight is 0. 
+
+```{r}
+res <- with(diet, t.test(preweight, weight6weeks, paired=TRUE)); res
+```
+
+Here it can be seen that the p-value = `r res$p.value` is smaller than 0.05, 
+so the null hypothesis is rejected and I support the claim that the diet affects the weight loss. 
+
+**b)** 
+<!--
+Compute and add to the data frame the variable weight.lost expressing the lost weight. 
+Test the claim that the median lost weight is bigger than 3 kg. 
+-->
+
+The null hypothesis is set up as the median of this weight.lost is bigger than 3. 
+Here the sign test is used to test the null hypothesis. 
+
+```{r}
+diet$weight.lost <- diet$preweight - diet$weight6weeks
+res <- binom.test(
+    sum(diet$weight.lost > 3), 
+    length(diet$weight.lost), 
+    alternative="less"
+); res
+```
+
+According to the result, p = `r res$p.value` > 0.05. 
+So, the null hypothesis cannot be rejected. 
+The median lost weight is bigger than 3 kg. 
+
+**c)** 
+<!--
+Using now weight.lost as response variable, 
+apply one-way ANOVA to test whether type of diet has an effect on the lost weight. 
+Do all three types diets lead to weight loss?
+Which diet was the best for losing weight?
+-->
+
+The null hypothesis is set up as the type of diet has no effect on the lost weight.
+
+```{r}
+diet_lm <- lm(weight.lost ~ diet, data=diet)
+res <- anova(diet_lm); res
+```
+
+The p-value = `r res["diet", "Pr(>F)"]` < 0.05, which leads to rejecting the null hypothesis. 
+Factor diet is significant. 
+
+```{r}
+diet_ <- diet; contrasts(diet_$diet) <- contr.sum
+diet_lm <- lm(weight.lost ~ diet, data=diet_)
+res <- summary(diet_lm)$coefficients; res
+```
+
+According to the results, both diet 1 and diet 2 don't lead to a weight loss. 
+diet 3 is the best for losing weight. 
+
+The normality of the residuals should be checked. 
+
+```{r, fig.height=3, fig.width=6, fig.align='center'}
+par(mfrow=c(1, 2))
+qqnorm(residuals(diet_lm)); plot(fitted(diet_lm), residuals(diet_lm))
+```
+
+It can be seen from the left plot that almost all points are approximately on a single line, so the normality can be assumed.
+The right plot also seems okay. 
+
+**d)** 
+<!--
+Use two-way ANOVA to investiage effect of the diet and gender (and possible interaction) on the lost weight. 
+Is the Friedman test relevant here? Can it be at all applied? 
+-->
+
+The null hypothesis is set up as: 
+
+- $H_A$: no main effect of the first factor diet
+
+- $H_B$: no main effect of the second factor gender
+
+- $H_{AB}$: no interaction between the two factors diet and gender
+
+```{r}
+diet_lm <- lm(weight.lost ~ diet * gender, data=diet)
+res <- anova(diet_lm); res
+```
+
+According to results, p-value for $H_A$ is `r res["diet", "Pr(>F)"]` < 0.05, 
+so $H_A$ is rejected. Factor diet has significant effect on weight loss. 
+p-value for $H_B$ is `r res["gender", "Pr(>F)"]` > 0.05, 
+so $H_B$ is not rejected. Factor gender has no main effect on weight loss. 
+p-value for $H_AB$ is `r res["diet:gender", "Pr(>F)"]` < 0.05, 
+so $H_AB$ is rejected. The interaction between diet and gender has effect on weight loss. 
+
+The normality of the residuals should be checked. 
+
+```{r fig.height=3, fig.width=6, fig.align='center'}
+par(mfrow=c(1, 2))
+qqnorm(residuals(diet_lm)); plot(fitted(diet_lm), residuals(diet_lm))
+```
+
+In the left plot, some points are stray away from the line, but most of the points seem ok. 
+The right plot seems good, the spread in the residuals does not change systematically. 
+
+Friedman test is not relevant here. 
+The aim of Friedman test is to understand the dependence of weight lost on the treatment factor 
+with block variable used to create homogeneous groups of experimental units. 
+Here is to investiage effect of the diet and gender (and their interaction) on the weight lost. 
+So it's not relevent. 
+Also, Friedman test does not take interaction between factors into account. 
+However, here there does exist interaction between diet and gender. 
+So, it can not be applied. 
+
+**e)** 
+<!--
+Apply appropriate model to investigate effect(s) of diet and height (and possibly their interaction) on the lost weight. 
+Is the effect of height the same for all 3 types of diet?
+-->
+
+The null hypothesis is set up as: 
+
+- $H_A$: no main effect of the first factor diet
+
+- $H_B$: no main effect of the second factor height
+
+- $H_{AB}$: no interaction between the two factors diet and height
+
+```{r}
+res <- anova(lm(weight.lost ~ diet * height , data=diet)); res
+```
+
+According to results, p-value for $H_A$ is `r res["diet", "Pr(>F)"]` < 0.05, 
+so $H_A$ is rejected. Factor diet has significant effect on weight loss. 
+p-value for $H_B$ is `r res["height", "Pr(>F)"]` > 0.05, 
+so $H_B$ is not rejected. Factor height has no main effect on weight loss. 
+p-value for $H_AB$ is `r res["diet:height", "Pr(>F)"]` > 0.05, 
+so $H_AB$ is not rejected. There is no interaction between diet and height. 
+
+So we again use the addition model. 
+
+```{r}
+diet_lm <- lm(weight.lost ~ height + diet, data=diet)
+res <- anova(diet_lm); res
+```
+
+The results are same as above. 
+Only $H_A$ is rejected. 
+
+```{r, fig.height=3, fig.width=6, fig.align='center'}
+par(mfrow=c(1, 2))
+with(diet, plot(weight.lost ~ height, pch=unclass(diet)))
+for (i in 1:2) abline(lm(weight.lost~height, data=diet[diet$diet==i, ]))
+
+with(diet, plot(weight.lost ~ height, pch=unclass(diet)))
+for (i in 1:3) abline(lm(weight.lost~height, data=diet[diet$diet==i, ]))
+```
+
+According to the plot, the effect of height is not the same for all 3 types of diet. 
+The effect of height is similar while using diet1 and diet2 which is shown in the left plot, 
+but it is diffenet for diet: the slope becomes negative (in the right plot). 
+
+Lastly, it is still necessary to check the normality. 
+
+```{r fig.height=3, fig.width=6, fig.align='center'}
+par(mfrow=c(1, 2))
+qqnorm(residuals(diet_lm)); plot(fitted(diet_lm), residuals(diet_lm))
+```
+
+Both plots seem good. 
+
+**f)**
+<!--
+Which of the two approaches, the one from c) or from e), do you prefer? Why? 
+For the preferred model, predict the lost weight for all three types of diet for an average person.
+-->
+
+```{r}
+summary(lm(weight.lost ~ diet, data=diet))$adj.r.squared
+```
+
+```{r}
+summary(lm(weight.lost ~ height + diet, data=diet))$adj.r.squared
+```
+
+I perfer the approach in e) but i will adopt the model in c). 
+The approach in e) considered more variables and investigated the potential interaction between diet and height compared to c), 
+but they achieves the results that only diet variable has effect on the lost weight. 
+So model in c) in perferred as it has less variables and the ajusted R squared is a little bit higher. 
+
+```{r}
+coef <- summary(lm(weight.lost ~ diet, data=diet))$coefficients; coef
+```
+
+So for an average person, for diet 1, the perdicted lose weight is `r coef["(Intercept)", "Estimate"]`; 
+for diet 2, the perdicted lose weight is `r coef["(Intercept)", "Estimate"] + coef["diet2", "Estimate"]`; 
+for diet 3, the perdicted lose weight is `r coef["(Intercept)", "Estimate"] + coef["diet3", "Estimate"]`. 
+
+**g)**
+<!--
+Create the categorical (binary) variable lost.4kg expressing whether the lost weight is bigger than 4kg or not. 
+(Hint: if a=c(1,-1,2), then a>0 = TRUE FALSE TRUE.)
+Suppose now that we observed the variable lost.4kg instead of weight6weeks. 
+Could we still test the hypothesis in b), c), d), e)? 
+If yes, propose relevant models and perform relevant tests.
+--> 
+
+```{r}
+diet$lost.4kg <- as.factor(diet$weight.lost > 4)
+```
+
+For b), the original null hypothesis is set up as the median of this weight.lost is bigger than 3. 
+But here we only have lost.4kg that counts the number of people whose weight lost is bigger than 4. 
+So, the original null hypothesis can not be tested. 
+We can only test null hypothesis like median of lost weight is bigger than 4. 
+
+```{r}
+res <- binom.test(
+    sum(diet$lost.4kg==TRUE), 
+    length(diet$lost.4kg), 
+    alternative="less"
+); res
+```
+
+According to the result, p = `r res$p.value` > 0.05. 
+So, the null hypothesis cannot be rejected. 
+The median lost weight is bigger than 4 kg. 
+So, the median lost weight is bigger than 3 kg. 
+
+For c), d), e), the null hypothesis are whether the diet, gender or height have effects on the lost weight. 
+Because here we use binary lost.4kg as the response variable, we can make use logistic regression to 
+investigate the effect of diet, gender or height variable. 
+
+The null hypothesis is set up as: 
+
+- $H_A$: no main effect of the first factor diet
+
+- $H_B$: no main effect of the second factor gender
+
+- $H_C$: no main effect of the second factor height
+
+- $H_{AB}$: no interaction between the two factors diet and gender
+
+- $H_{AC}$: no interaction between the two factors diet and height
+
+```{r}
+diet_glm <- glm(
+    lost.4kg ~ diet + gender + height + diet:gender + diet:height, 
+    data=diet, family=binomial
+)
+anova(diet_glm, test="Chisq")
+```
+
+According to the deviance table, $H_A$ and $H_{AB}$ are rejected, 
+since their p values are smaller than 0.05. 
+Other hypothesis are not rejected. 
+So there is no interaction between diet and height. 
+gender and height has no effect on whether the lost weight is bigger than 4kg or not. 
